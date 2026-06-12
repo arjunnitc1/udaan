@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Udaan — Your skill. Your business. Your flight.</title>
+<style>
+  :root{
+    --ink:#1B2143;          /* deep indigo — the night before flight */
+    --ink-soft:#3A4270;
+    --marigold:#F2A007;     /* the accent of every Indian celebration */
+    --marigold-deep:#D88B00;
+    --rose:#C8506E;
+    --paper:#FFFDF7;
+    --sand:#F6EFE2;
+    --leaf:#2E7D5B;
+    --line:#E8DFCC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+    background:var(--paper);color:var(--ink);min-height:100vh;
+  }
+  .serif{font-family:"Palatino Linotype",Palatino,Georgia,serif}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;border-bottom:1px solid var(--line);
+    background:var(--paper);position:sticky;top:0;z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .kite{
+    width:22px;height:22px;background:var(--marigold);
+    transform:rotate(45deg);border-radius:3px 6px 3px 6px;position:relative;
+  }
+  .kite::after{
+    content:"";position:absolute;inset:5px;background:var(--rose);
+    border-radius:2px 4px 2px 4px;opacity:.85;
+  }
+  .brand h1{font-size:1.25rem;letter-spacing:.02em}
+  .brand .hi{color:var(--marigold-deep);font-weight:600;font-size:.8rem;margin-left:2px}
+  .lang-toggle{
+    display:flex;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;font-size:.8rem
+  }
+  .lang-toggle button{
+    border:none;background:transparent;padding:6px 14px;cursor:pointer;
+    font-weight:600;color:var(--ink);font-family:inherit
+  }
+  .lang-toggle button.active{background:var(--ink);color:var(--paper)}
+
+  /* ---------- landing ---------- */
+  .landing{max-width:640px;margin:0 auto;padding:56px 24px 40px;text-align:center}
+  .landing .eyebrow{
+    color:var(--marigold-deep);font-weight:700;font-size:.78rem;
+    letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px
+  }
+  .landing h2{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.15;margin-bottom:8px}
+  .landing h2 em{font-style:italic;color:var(--rose)}
+  .landing .sub{color:var(--ink-soft);font-size:1.05rem;line-height:1.6;margin:18px auto 30px;max-width:480px}
+  .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;
+    border-radius:12px;padding:14px 26px;border:none;transition:transform .12s ease
+  }
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--marigold);color:var(--ink);box-shadow:0 4px 14px rgba(242,160,7,.35)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .trust{margin-top:26px;font-size:.8rem;color:var(--ink-soft)}
+  .skill-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+  .chip{
+    background:var(--sand);border:1px solid var(--line);border-radius:99px;
+    padding:7px 14px;font-size:.85rem;cursor:pointer;color:var(--ink-soft)
+  }
+  .chip:hover{border-color:var(--marigold)}
+
+  /* ---------- coach ---------- */
+  .coach{max-width:640px;margin:0 auto;padding:20px 16px 140px;display:none}
+  .msg{display:flex;margin:14px 0;gap:10px;animation:rise .35s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .msg.coach-m .avatar{
+    width:34px;height:34px;border-radius:50%;background:var(--ink);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center
+  }
+  .msg.coach-m .avatar span{
+    width:12px;height:12px;background:var(--marigold);transform:rotate(45deg);
+    border-radius:2px 4px 2px 4px;display:block
+  }
+  .bubble{
+    padding:12px 16px;border-radius:16px;max-width:82%;line-height:1.55;font-size:.97rem
+  }
+  .coach-m .bubble{background:var(--sand);border:1px solid var(--line);border-top-left-radius:4px}
+  .user-m{justify-content:flex-end}
+  .user-m .bubble{background:var(--ink);color:var(--paper);border-bottom-right-radius:4px}
+  .typing{display:inline-flex;gap:4px;padding:4px 2px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--ink-soft);animation:blink 1.1s infinite}
+  .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+  @keyframes blink{0%,70%{opacity:.25}35%{opacity:1}}
+
+  /* ---------- input bar ---------- */
+  .input-bar{
+    position:fixed;bottom:0;left:0;right:0;background:var(--paper);
+    border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    display:none
+  }
+  .input-inner{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:flex-end}
+  .input-inner textarea{
+    flex:1;resize:none;border:1.5px solid var(--line);border-radius:14px;
+    padding:12px 14px;font-family:inherit;font-size:1rem;background:#fff;
+    max-height:110px;outline-color:var(--marigold)
+  }
+  .icon-btn{
+    width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.15rem
+  }
+  .mic-btn{background:var(--sand);border:1.5px solid var(--line)}
+  .mic-btn.listening{background:var(--rose);color:#fff;animation:pulse 1s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(200,80,110,.18)}}
+  .send-btn{background:var(--marigold);color:var(--ink)}
+
+  /* ---------- kit ---------- */
+  .kit{max-width:640px;margin:8px auto 0;display:none;padding:0 16px 60px;animation:rise .5s ease}
+  .kit-head{text-align:center;margin:26px 0 8px}
+  .kit-head .eyebrow{color:var(--marigold-deep);font-weight:700;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase}
+  .kit-head h3{font-size:1.7rem;margin-top:6px}
+  .kit-head p{color:var(--ink-soft);margin-top:6px;font-size:.95rem}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:20px;margin:16px 0;box-shadow:0 2px 10px rgba(27,33,67,.05)
+  }
+  .card h4{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--marigold-deep);margin-bottom:12px}
+  .biz{padding:12px 0;border-bottom:1px dashed var(--line)}
+  .biz:last-child{border-bottom:none;padding-bottom:0}
+  .biz .name{font-weight:700;font-size:1.05rem}
+  .biz .range{color:var(--leaf);font-weight:700;font-size:.92rem;margin-top:2px}
+  .biz .why{color:var(--ink-soft);font-size:.9rem;margin-top:4px;line-height:1.5}
+  .price-line{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.95rem}
+  .price-line:last-of-type{border-bottom:none}
+  .price-line b{font-size:1.05rem}
+  .script{
+    background:var(--sand);border-radius:12px;padding:12px 14px;margin-top:12px;
+    font-size:.92rem;line-height:1.55;font-style:italic;color:var(--ink-soft)
+  }
+  .script b{color:var(--ink);font-style:normal}
+  .wa-box{
+    background:#EAF7EE;border:1px solid #CDE9D6;border-radius:12px;
+    padding:14px;font-size:.93rem;line-height:1.6;white-space:pre-wrap
+  }
+  .copy-btn{
+    margin-top:10px;background:var(--leaf);color:#fff;border:none;border-radius:10px;
+    padding:10px 18px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit
+  }
+  .scheme{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .scheme:last-child{border-bottom:none}
+  .scheme .dot{width:9px;height:9px;border-radius:50%;background:var(--marigold);margin-top:6px;flex-shrink:0}
+  .scheme .s-name{font-weight:700;font-size:.97rem}
+  .scheme .s-what{color:var(--ink-soft);font-size:.88rem;margin-top:2px;line-height:1.5}
+  .scheme .s-step{color:var(--leaf);font-size:.85rem;font-weight:600;margin-top:3px}
+
+  /* signature: possible-year card */
+  .year-card{
+    background:linear-gradient(150deg,var(--ink) 0%,#2A3160 70%,#3A2F58 100%);
+    color:var(--paper);border:none;position:relative;overflow:hidden
+  }
+  .year-card::before{
+    content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;
+    background:var(--marigold);opacity:.16;transform:rotate(45deg);border-radius:14px 30px 14px 30px
+  }
+  .year-card h4{color:var(--marigold)}
+  .year-num{font-size:2.6rem;font-weight:800;letter-spacing:-.01em}
+  .year-label{font-size:.85rem;opacity:.85}
+  .year-row{display:flex;gap:24px;margin:10px 0 14px;flex-wrap:wrap}
+  .year-assume{font-size:.85rem;opacity:.8;line-height:1.55}
+  .year-save{
+    margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18);
+    font-size:.92rem;line-height:1.55
+  }
+  .year-save b{color:var(--marigold)}
+
+  .action-card{background:var(--marigold);border:none}
+  .action-card h4{color:var(--ink)}
+  .action-card p{font-weight:600;font-size:1.02rem;line-height:1.6}
+  .disclaimer{font-size:.74rem;color:var(--ink-soft);text-align:center;margin-top:20px;line-height:1.6}
+  .restart{display:block;margin:20px auto 0;background:transparent;border:1.5px solid var(--ink);color:var(--ink)}
+  .err{background:#FBEAEA;border:1px solid #EFC7C7;color:#8A2B2B;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:.9rem;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="kite"></div>
+    <h1 class="serif">Udaan<span class="hi">उड़ान</span></h1>
+  </div>
+  <div class="lang-toggle">
+    <button id="lang-en" class="active" onclick="setLang('en')">English</button>
+    <button id="lang-hi" onclick="setLang('hi')">हिन्दी</button>
+  </div>
+</header>
+
+<!-- LANDING -->
+<section class="landing" id="landing">
+  <div class="eyebrow" data-en="AI BUSINESS COACH FOR WOMEN" data-hi="महिलाओं के लिए AI बिज़नेस कोच">AI BUSINESS COACH FOR WOMEN</div>
+  <h2 class="serif" id="hero-line">You already have the skill.<br><em>Let's build the business.</em></h2>
+  <p class="sub" data-en="Tell Udaan what you're good at — cooking, stitching, teaching, anything. Get your prices, your first customers' message, government support, and a picture of the life your skill can build. In your language. No judgement, ever."
+     data-hi="उड़ान को बताइए आप क्या अच्छा करती हैं — खाना बनाना, सिलाई, पढ़ाना, कुछ भी। पाइए अपने दाम, पहला WhatsApp संदेश, सरकारी योजनाएँ, और उस ज़िंदगी की तस्वीर जो आपका हुनर बना सकता है। आपकी भाषा में। बिना किसी जजमेंट के।">
+     Tell Udaan what you're good at — cooking, stitching, teaching, anything. Get your prices, your first customers' message, government support, and a picture of the life your skill can build. In your language. No judgement, ever.</p>
+  <div class="cta-row">
+    <button class="btn btn-primary" onclick="startCoach(false)" data-en="Talk to your coach" data-hi="अपने कोच से बात करें">Talk to your coach</button>
+    <button class="btn btn-ghost" onclick="startCoach(true)" data-en="▶ Watch Sunita's demo" data-hi="▶ सुनीता का डेमो देखें">▶ Watch Sunita's demo</button>
+  </div>
+  <div class="trust" data-en="Free forever for women · Works on any phone · Voice or typing" data-hi="महिलाओं के लिए हमेशा मुफ़्त · किसी भी फ़ोन पर · बोलकर या लिखकर">Free forever for women · Works on any phone · Voice or typing</div>
+  <div class="skill-chips">
+    <button class="chip" onclick="quickStart('cooking')" data-en="🍱 I cook well" data-hi="🍱 मैं अच्छा खाना बनाती हूँ">🍱 I cook well</button>
+    <button class="chip" onclick="quickStart('stitching')" data-en="🪡 I stitch & tailor" data-hi="🪡 मैं सिलाई करती हूँ">🪡 I stitch & tailor</button>
+    <button class="chip" onclick="quickStart('tuition')" data-en="📚 I can teach kids" data-hi="📚 मैं बच्चों को पढ़ा सकती हूँ">📚 I can teach kids</button>
+    <button class="chip" onclick="quickStart('mehendi')" data-en="🌿 I do mehendi" data-hi="🌿 मैं मेहंदी लगाती हूँ">🌿 I do mehendi</button>
+  </div>
+</section>
+
+<!-- COACH CHAT -->
+<section class="coach" id="coach"></section>
+
+<!-- INPUT -->
+<div class="input-bar" id="input-bar">
+  <div class="input-inner">
+    <button class="icon-btn mic-btn" id="mic-btn" onclick="toggleMic()" title="Speak">🎤</button>
+    <textarea id="user-input" rows="1" placeholder="Tell me about your skill…"></textarea>
+    <button class="icon-btn send-btn" onclick="sendMsg()" title="Send">➤</button>
+  </div>
+</div>
+
+<!-- KIT -->
+<section class="kit" id="kit"></section>
+
+<script>
+/* ================= STATE ================= */
+let lang = 'en';
+let messages = [];          // conversation history for the API
+let demoMode = false;
+let questionCount = 0;
+let recognition = null;
+
+const SYSTEM_PROMPT = `You are Udaan, an AI business coach for Indian women starting their first home business. Your user may have limited formal education and has likely never earned her own money. Your stance is the product:
+- NEVER question whether she should work. NEVER suggest asking anyone's permission. Her ambition is always legitimate.
+- NEVER moralize or lecture. Answer doubt with concrete next steps.
+- Be warm, brief, and practical — like an elder sister who runs a successful business.
+- Always count HER OWN LABOUR as a cost when pricing. Women underprice because they don't value their time; you must.
+
+CONVERSATION RULES:
+- Ask AT MOST ${'$'}{3} short follow-up questions, ONE at a time (what exactly she makes/does, how much time she has per day, what people have praised). Keep questions under 25 words.
+- After you have enough (max 3 questions), produce the Udaan Kit.
+
+OUTPUT FORMAT — respond with ONLY a JSON object, no markdown, no backticks:
+While interviewing: {"type":"question","text_en":"...","text_hi":"..."}
+When ready, the kit: {"type":"kit","intro_en":"...","intro_hi":"...","businesses":[{"name_en":"...","name_hi":"...","range":"₹X–Y/month","why_en":"...","why_hi":"..."}],"pricing":{"items":[{"item_en":"...","item_hi":"...","price":"₹X"}],"script_en":"confidence script for quoting the price, first person, 2 sentences","script_hi":"same in Hindi"},"whatsapp_hi":"ready-to-send first promotional WhatsApp message in Hindi with emoji, under 60 words","whatsapp_en":"same in English","schemes":[{"name":"...","what_en":"...","what_hi":"...","step_en":"first concrete step","step_hi":"..."}],"projection":{"monthly":"₹X","year":"₹X","assumption_en":"1 sentence: the simple math behind it","assumption_hi":"...","savings_en":"1-2 sentences: a simple first savings habit from this income","savings_hi":"..."},"action_en":"ONE concrete thing to do today, under 30 words","action_hi":"..."}
+- Give 2-3 businesses. Use realistic small-town Indian prices and conservative earnings.
+- Schemes: choose only from: Udyam Registration (free MSME registration, udyamregistration.gov.in), PM Mudra Loan (collateral-free loan up to ₹10 lakh via any bank), State SHG / NRLM linkage (join local self-help group for credit + selling network), PM Vishwakarma (for traditional artisans/tailors: training + ₹15,000 toolkit incentive). Pick the 2-3 that genuinely fit.
+- Label nothing as guaranteed; projections are estimates.`;
+
+/* ================= LANGUAGE ================= */
+const L = {
+  en:{placeholder:"Tell me about your skill…", thinking:"Udaan is thinking…", restart:"Start a new plan",
+      kitEyebrow:"YOUR UDAAN KIT", kitTitle:"Your business, ready to fly",
+      cBiz:"What you can start", cPrice:"Your prices — counting YOUR time", cWa:"Your first WhatsApp message",
+      cSchemes:"Government support you qualify for", cYear:"Your possible year", cAction:"Do this today",
+      copy:"Copy for WhatsApp", copied:"Copied ✓", perMonth:"per month", perYear:"in one year",
+      disclaimer:"Estimates are illustrative, not guarantees. Scheme details: verify on official portals. Udaan guides you; banks, SHG didis and officials help you complete each step.",
+      err:"The coach couldn't connect. Check your internet, or watch Sunita's demo instead.",
+      demoNote:"▶ Demo mode — a real conversation Udaan had with Sunita from Lucknow."},
+  hi:{placeholder:"अपने हुनर के बारे में बताइए…", thinking:"उड़ान सोच रही है…", restart:"नई योजना शुरू करें",
+      kitEyebrow:"आपकी उड़ान किट", kitTitle:"आपका बिज़नेस, उड़ान के लिए तैयार",
+      cBiz:"आप क्या शुरू कर सकती हैं", cPrice:"आपके दाम — आपकी मेहनत गिनकर", cWa:"आपका पहला WhatsApp संदेश",
+      cSchemes:"सरकारी योजनाएँ जो आपके लिए हैं", cYear:"आपका संभावित साल", cAction:"आज ही करें",
+      copy:"WhatsApp के लिए कॉपी करें", copied:"कॉपी हो गया ✓", perMonth:"हर महीने", perYear:"एक साल में",
+      disclaimer:"अनुमान केवल उदाहरण हैं, गारंटी नहीं। योजना की जानकारी आधिकारिक पोर्टल पर जाँचें। उड़ान राह दिखाती है; बैंक, SHG दीदी और अधिकारी हर कदम पूरा करने में मदद करते हैं।",
+      err:"कोच से कनेक्ट नहीं हो पाया। इंटरनेट जाँचें, या सुनीता का डेमो देखें।",
+      demoNote:"▶ डेमो — लखनऊ की सुनीता से उड़ान की असली बातचीत।"}
+};
+
+function setLang(l){
+  lang = l;
+  document.getElementById('lang-en').classList.toggle('active', l==='en');
+  document.getElementById('lang-hi').classList.toggle('active', l==='hi');
+  document.querySelectorAll('[data-en]').forEach(el=>{ el.textContent = el.dataset[l]; });
+  document.getElementById('hero-line').innerHTML = l==='en'
+    ? 'You already have the skill.<br><em>Let\'s build the business.</em>'
+    : 'हुनर तो आपके पास पहले से है।<br><em>चलिए बिज़नेस बनाते हैं।</em>';
+  document.getElementById('user-input').placeholder = L[l].placeholder;
+  if (recognition) recognition.lang = l==='hi' ? 'hi-IN' : 'en-IN';
+}
+
+/* ================= FLOW ================= */
+function startCoach(demo){
+  demoMode = demo;
+  document.getElementById('landing').style.display='none';
+  document.getElementById('coach').style.display='block';
+  document.getElementById('input-bar').style.display = demo ? 'none' : 'block';
+  if (demo){ runDemo(); }
+  else {
+    addCoachBubble(lang==='hi'
+      ? 'नमस्ते! मैं उड़ान हूँ — आपकी बिज़नेस कोच। बताइए, आप क्या अच्छा करती हैं? बोलकर या लिखकर, जैसे आपको आसान लगे। 🪁'
+      : 'Namaste! I\'m Udaan — your business coach. Tell me, what are you good at? Speak or type, whatever feels easy. 🪁');
+  }
+}
+function quickStart(skill){
+  startCoach(false);
+  const starters = {
+    cooking:{en:'I cook very well — everyone praises my food',hi:'मैं बहुत अच्छा खाना बनाती हूँ — सब मेरे खाने की तारीफ़ करते हैं'},
+    stitching:{en:'I stitch and tailor clothes at home',hi:'मैं घर पर कपड़े सिलती हूँ'},
+    tuition:{en:'I can teach school children',hi:'मैं स्कूल के बच्चों को पढ़ा सकती हूँ'},
+    mehendi:{en:'I do beautiful mehendi designs',hi:'मैं सुंदर मेहंदी लगाती हूँ'}
+  };
+  setTimeout(()=>{ document.getElementById('user-input').value = starters[skill][lang]; sendMsg(); }, 600);
+}
+
+function addCoachBubble(text, isHtml){
+  const c = document.getElementById('coach');
+  const m = document.createElement('div'); m.className='msg coach-m';
+  m.innerHTML = `<div class="avatar"><span></span></div><div class="bubble">${isHtml?text:escapeHtml(text)}</div>`;
+  c.appendChild(m); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  return m;
+}
+function addUserBubble(text){
+  const c = document.getElementById('coach');
+  const m = document.createElement('div'); m.className='msg user-m';
+  m.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+  c.appendChild(m); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function addTyping(){
+  return addCoachBubble('<span class="typing"><i></i><i></i><i></i></span>', true);
+}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+async function sendMsg(){
+  const ta = document.getElementById('user-input');
+  const text = ta.value.trim();
+  if(!text) return;
+  ta.value='';
+  addUserBubble(text);
+  messages.push({role:'user',content:text});
+  const typing = addTyping();
+  try{
+    const reply = await callClaude();
+    typing.remove();
+    handleReply(reply);
+  }catch(e){
+    typing.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className='err'; errDiv.textContent = L[lang].err;
+    document.getElementById('coach').appendChild(errDiv);
+    console.error(e);
+  }
+}
+
+async function callClaude(){
+  const response = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:1000,
+      system:SYSTEM_PROMPT,
+      messages:messages
+    })
+  });
+  const data = await response.json();
+  const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  messages.push({role:'assistant',content:text});
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+function handleReply(r){
+  if(r.type==='question'){
+    questionCount++;
+    addCoachBubble(lang==='hi'? r.text_hi : r.text_en);
+  } else if(r.type==='kit'){
+    addCoachBubble(lang==='hi'? (r.intro_hi||'आपकी किट तैयार है! 🎉') : (r.intro_en||'Your kit is ready! 🎉'));
+    setTimeout(()=>renderKit(r), 700);
+  }
+}
+
+/* ================= KIT RENDER ================= */
+function renderKit(k){
+  document.getElementById('input-bar').style.display='none';
+  const t = L[lang];
+  const el = document.getElementById('kit');
+  const bi = (en,hi)=> lang==='hi'? (hi||en) : (en||hi);
+
+  const bizHtml = (k.businesses||[]).map(b=>`
+    <div class="biz">
+      <div class="name">${escapeHtml(bi(b.name_en,b.name_hi))}</div>
+      <div class="range">${escapeHtml(b.range||'')}</div>
+      <div class="why">${escapeHtml(bi(b.why_en,b.why_hi))}</div>
+    </div>`).join('');
+
+  const priceHtml = ((k.pricing&&k.pricing.items)||[]).map(p=>`
+    <div class="price-line"><span>${escapeHtml(bi(p.item_en,p.item_hi))}</span><b>${escapeHtml(p.price||'')}</b></div>`).join('');
+
+  const waText = lang==='hi'? (k.whatsapp_hi||k.whatsapp_en) : (k.whatsapp_en||k.whatsapp_hi);
+
+  const schemesHtml = (k.schemes||[]).map(s=>`
+    <div class="scheme"><div class="dot"></div><div>
+      <div class="s-name">${escapeHtml(s.name||'')}</div>
+      <div class="s-what">${escapeHtml(bi(s.what_en,s.what_hi))}</div>
+      <div class="s-step">→ ${escapeHtml(bi(s.step_en,s.step_hi))}</div>
+    </div></div>`).join('');
+
+  const pj = k.projection||{};
+  el.innerHTML = `
+    <div class="kit-head">
+      <div class="eyebrow">${t.kitEyebrow}</div>
+      <h3 class="serif">${t.kitTitle}</h3>
+    </div>
+    <div class="card"><h4>${t.cBiz}</h4>${bizHtml}</div>
+    <div class="card"><h4>${t.cPrice}</h4>${priceHtml}
+      <div class="script"><b>${lang==='hi'?'दाम बताने का तरीका:':'How to say your price:'}</b><br>“${escapeHtml(bi(k.pricing&&k.pricing.script_en, k.pricing&&k.pricing.script_hi))}”</div>
+    </div>
+    <div class="card"><h4>${t.cWa}</h4>
+      <div class="wa-box" id="wa-text">${escapeHtml(waText||'')}</div>
+      <button class="copy-btn" onclick="copyWa(this)">${t.copy}</button>
+    </div>
+    <div class="card"><h4>${t.cSchemes}</h4>${schemesHtml}</div>
+    <div class="card year-card"><h4>${t.cYear}</h4>
+      <div class="year-row">
+        <div><div class="year-num">${escapeHtml(pj.monthly||'')}</div><div class="year-label">${t.perMonth}</div></div>
+        <div><div class="year-num">${escapeHtml(pj.year||'')}</div><div class="year-label">${t.perYear}</div></div>
+      </div>
+      <div class="year-assume">${escapeHtml(bi(pj.assumption_en,pj.assumption_hi))}</div>
+      <div class="year-save"><b>${lang==='hi'?'बचत की पहली आदत:':'Your first savings habit:'}</b> ${escapeHtml(bi(pj.savings_en,pj.savings_hi))}</div>
+    </div>
+    <div class="card action-card"><h4>${t.cAction}</h4><p>${escapeHtml(bi(k.action_en,k.action_hi))}</p></div>
+    <div class="disclaimer">${t.disclaimer}</div>
+    <button class="btn restart" onclick="location.reload()">${t.restart}</button>
+  `;
+  el.style.display='block';
+  window.scrollTo({top:el.offsetTop-20,behavior:'smooth'});
+}
+function copyWa(btn){
+  const txt = document.getElementById('wa-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{ btn.textContent = L[lang].copied; setTimeout(()=>btn.textContent=L[lang].copy,1800); });
+}
+
+/* ================= VOICE ================= */
+function toggleMic(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert(lang==='hi'?'इस ब्राउज़र में वॉइस उपलब्ध नहीं है — कृपया Chrome इस्तेमाल करें।':'Voice not available in this browser — please use Chrome.'); return; }
+  const btn = document.getElementById('mic-btn');
+  if(recognition){ recognition.stop(); return; }
+  recognition = new SR();
+  recognition.lang = lang==='hi' ? 'hi-IN' : 'en-IN';
+  recognition.interimResults = true;
+  btn.classList.add('listening');
+  recognition.onresult = (e)=>{
+    document.getElementById('user-input').value = Array.from(e.results).map(r=>r[0].transcript).join('');
+  };
+  recognition.onend = ()=>{ btn.classList.remove('listening'); recognition=null; };
+  recognition.onerror = ()=>{ btn.classList.remove('listening'); recognition=null; };
+  recognition.start();
+}
+
+/* ================= OFFLINE DEMO (Sunita) ================= */
+const DEMO_KIT = {
+  type:"kit",
+  intro_en:"Sunita ji, your kit is ready — twenty years of skill, finally priced. 🎉",
+  intro_hi:"सुनीता जी, आपकी किट तैयार है — बीस साल का हुनर, आखिरकार उसका दाम। 🎉",
+  businesses:[
+    {name_en:"Office tiffin service",name_hi:"ऑफ़िस टिफ़िन सेवा",range:"₹6,000–12,000/month",
+     why_en:"Daily repeat income. Offices near your colony need home food — start with 5 tiffins a day.",
+     why_hi:"रोज़ की पक्की कमाई। आपकी कॉलोनी के पास के दफ़्तरों को घर का खाना चाहिए — दिन में 5 टिफ़िन से शुरू करें।"},
+    {name_en:"Festival achar & sweets orders",name_hi:"त्योहारों पर अचार-मिठाई के ऑर्डर",range:"₹3,000–8,000/festival season",
+     why_en:"Your achar is already famous in the colony. Festivals = high demand, premium prices.",
+     why_hi:"आपका अचार कॉलोनी में पहले से मशहूर है। त्योहार = ज़्यादा माँग, अच्छे दाम।"},
+    {name_en:"Weekend cooking classes for working women",name_hi:"कामकाजी महिलाओं के लिए वीकेंड कुकिंग क्लास",range:"₹2,000–4,000/month",
+     why_en:"2 hours on Sunday, 4 students at ₹250 each. Your knowledge is the product.",
+     why_hi:"रविवार को 2 घंटे, ₹250 के हिसाब से 4 छात्राएँ। आपका ज्ञान ही प्रोडक्ट है।"}
+  ],
+  pricing:{items:[
+    {item_en:"Veg tiffin (roti, sabzi, dal, rice)",item_hi:"वेज टिफ़िन (रोटी, सब्ज़ी, दाल, चावल)",price:"₹80"},
+    {item_en:"Achar (500g jar)",item_hi:"अचार (500 ग्राम)",price:"₹180"},
+    {item_en:"Cooking class (per person, 2 hrs)",item_hi:"कुकिंग क्लास (प्रति व्यक्ति, 2 घंटे)",price:"₹250"}],
+    script_en:"My price is ₹80 per tiffin. It covers fresh ingredients and my work — the same care I've put into my kitchen for twenty years.",
+    script_hi:"मेरा दाम ₹80 प्रति टिफ़िन है। इसमें ताज़ा सामान और मेरी मेहनत शामिल है — वही बीस साल वाला स्वाद और सफ़ाई।"},
+  whatsapp_hi:"🙏 नमस्ते! मैं सुनीता — अब आपके लिए घर का ताज़ा खाना बना रही हूँ 🍱\nवेज टिफ़िन ₹80 (रोटी, सब्ज़ी, दाल, चावल)\nमशहूर घर का अचार ₹180 (500g)\nऑर्डर के लिए इसी नंबर पर मैसेज करें। पहले 10 ऑर्डर पर अचार का फ्री सैंपल! ✨",
+  whatsapp_en:"🙏 Namaste! I'm Sunita — now cooking fresh home food for you 🍱\nVeg tiffin ₹80 (roti, sabzi, dal, rice)\nFamous homemade achar ₹180 (500g)\nMessage this number to order. Free achar sample with the first 10 orders! ✨",
+  schemes:[
+    {name:"Udyam Registration",what_en:"Free government MSME registration — makes your business official in 15 minutes, opens the door to loans.",what_hi:"मुफ़्त सरकारी MSME रजिस्ट्रेशन — 15 मिनट में आपका बिज़नेस आधिकारिक, लोन का रास्ता खुलता है।",step_en:"Visit udyamregistration.gov.in with your Aadhaar",step_hi:"अपने आधार के साथ udyamregistration.gov.in पर जाएँ"},
+    {name:"PM Mudra Loan (Shishu)",what_en:"Collateral-free bank loan up to ₹50,000 to start — for a bigger stove, steel tiffins, jars.",what_hi:"बिना गारंटी ₹50,000 तक का बैंक लोन — बड़ा चूल्हा, स्टील टिफ़िन, जार के लिए।",step_en:"Ask for the Mudra desk at any nearby bank branch",step_hi:"नज़दीकी बैंक शाखा में मुद्रा डेस्क के बारे में पूछें"},
+    {name:"SHG / NRLM linkage",what_en:"Join your local self-help group — group savings, easy credit, and didis who already sell.",what_hi:"अपने इलाक़े के स्वयं सहायता समूह से जुड़ें — बचत, आसान कर्ज़, और बेचने वाली दीदियों का साथ।",step_en:"Ask your anganwadi or ASHA worker for the nearest SHG",step_hi:"नज़दीकी SHG के लिए आँगनवाड़ी या आशा दीदी से पूछें"}
+  ],
+  projection:{monthly:"₹9,500",year:"₹1,14,000",
+    assumption_en:"5 tiffins a day × 22 days at ₹80, plus ~₹600/week from achar — a conservative start.",
+    assumption_hi:"रोज़ 5 टिफ़िन × 22 दिन × ₹80, और अचार से करीब ₹600/हफ़्ता — एक सादा शुरुआत।",
+    savings_en:"Open a zero-balance Jan Dhan account this week. Put ₹2,000 aside every month — in a year that's ₹24,000 that is only yours.",
+    savings_hi:"इसी हफ़्ते ज़ीरो-बैलेंस जन धन खाता खोलें। हर महीने ₹2,000 अलग रखें — साल में ₹24,000, जो सिर्फ़ आपके हैं।"},
+  action_en:"Send your WhatsApp message to 10 neighbours and your colony group today. Your first order is within 500 metres of your kitchen.",
+  action_hi:"आज ही अपना WhatsApp संदेश 10 पड़ोसियों और कॉलोनी ग्रुप में भेजिए। आपका पहला ऑर्डर आपकी रसोई से 500 मीटर के अंदर है।"
+};
+
+const DEMO_SCRIPT = [
+  {who:'coach',en:'Namaste! I\'m Udaan — your business coach. Tell me, what are you good at? 🪁',hi:'नमस्ते! मैं उड़ान हूँ — आपकी बिज़नेस कोच। बताइए, आप क्या अच्छा करती हैं? 🪁'},
+  {who:'user',en:'I make very good food… everyone in the colony praises my achar. But I have never earned anything.',hi:'मैं बहुत अच्छा खाना बनाती हूँ… कॉलोनी में सब मेरे अचार की तारीफ़ करते हैं। पर मैंने कभी कुछ कमाया नहीं।'},
+  {who:'coach',en:'Twenty years of practice is not "nothing" — it\'s training. Which dishes do people ask for again and again?',hi:'बीस साल का अभ्यास "कुछ नहीं" नहीं होता — वो ट्रेनिंग है। लोग बार-बार कौन सी चीज़ें माँगते हैं?'},
+  {who:'user',en:'My aam ka achar, and my dal-roti… my neighbour says I should sell tiffins but I don\'t know how to start or what to charge.',hi:'मेरा आम का अचार, और दाल-रोटी… पड़ोसन कहती है टिफ़िन बेचो, पर मुझे पता नहीं कैसे शुरू करूँ, क्या दाम रखूँ।'},
+  {who:'coach',en:'That\'s exactly what I\'m here for. Last question: how much time can you give, and is there an office area or school near your home?',hi:'इसीलिए तो मैं हूँ। आख़िरी सवाल: आप कितना समय दे सकती हैं, और घर के पास कोई ऑफ़िस या स्कूल है?'},
+  {who:'user',en:'2 to 3 hours in the afternoon. Yes, there is an office complex 10 minutes away.',hi:'दोपहर में 2-3 घंटे। हाँ, 10 मिनट की दूरी पर एक ऑफ़िस कॉम्प्लेक्स है।'}
+];
+
+async function runDemo(){
+  addCoachBubble(L[lang].demoNote);
+  for(const step of DEMO_SCRIPT){
+    await wait(1300);
+    const text = lang==='hi'? step.hi : step.en;
+    if(step.who==='coach') addCoachBubble(text); else addUserBubble(text);
+  }
+  await wait(1200);
+  const typing = addTyping();
+  await wait(1800);
+  typing.remove();
+  addCoachBubble(lang==='hi'? DEMO_KIT.intro_hi : DEMO_KIT.intro_en);
+  await wait(900);
+  renderKit(DEMO_KIT);
+}
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+
+/* textarea autosize + enter to send */
+const ta = document.getElementById('user-input');
+ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,110)+'px';});
+ta.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "_comment": "Verified scheme reference injected into the coach's context to prevent hallucination. Re-verify against official portals and update 'last_verified' periodically.",
+  "schemes": [
+    {
+      "id": "udyam",
+      "name": "Udyam Registration",
+      "what_en": "Free government MSME registration. Makes a business official in ~15 minutes and unlocks access to loans, subsidies and tenders.",
+      "what_hi": "मुफ़्त सरकारी MSME रजिस्ट्रेशन। लगभग 15 मिनट में बिज़नेस आधिकारिक हो जाता है और लोन, सब्सिडी व टेंडर का रास्ता खुलता है।",
+      "fits": ["any small business", "cooking", "tailoring", "tuition", "crafts", "services"],
+      "step_en": "Visit udyamregistration.gov.in with an Aadhaar and PAN.",
+      "step_hi": "आधार और पैन के साथ udyamregistration.gov.in पर जाएँ।",
+      "official_url": "https://udyamregistration.gov.in",
+      "last_verified": "2026-06"
+    },
+    {
+      "id": "mudra",
+      "name": "PM Mudra Loan",
+      "what_en": "Collateral-free bank loan to start or grow a micro-business. Shishu tier covers smaller first loans; larger tiers as the business grows.",
+      "what_hi": "बिना गारंटी का बैंक लोन, छोटे बिज़नेस को शुरू या बड़ा करने के लिए। शिशु श्रेणी पहले के छोटे लोन के लिए; बढ़ने पर बड़ी श्रेणियाँ।",
+      "fits": ["needs equipment", "needs working capital", "cooking", "tailoring", "retail"],
+      "step_en": "Ask for the Mudra loan desk at any nearby bank branch, or check mudra.org.in.",
+      "step_hi": "नज़दीकी बैंक शाखा में मुद्रा लोन डेस्क के बारे में पूछें, या mudra.org.in देखें।",
+      "official_url": "https://www.mudra.org.in",
+      "last_verified": "2026-06"
+    },
+    {
+      "id": "nrlm_shg",
+      "name": "SHG / NRLM linkage",
+      "what_en": "Join a local women's self-help group under the National Rural Livelihoods Mission for group savings, low-interest credit, and a ready selling network of other women.",
+      "what_hi": "राष्ट्रीय ग्रामीण आजीविका मिशन के तहत स्थानीय महिला स्वयं सहायता समूह से जुड़ें — समूह बचत, कम ब्याज पर कर्ज़, और बेचने वाली दीदियों का नेटवर्क।",
+      "fits": ["rural", "wants community", "wants credit", "any small business"],
+      "step_en": "Ask your anganwadi or ASHA worker for the nearest self-help group, or check aajeevika.gov.in.",
+      "step_hi": "नज़दीकी SHG के लिए आँगनवाड़ी या आशा दीदी से पूछें, या aajeevika.gov.in देखें।",
+      "official_url": "https://aajeevika.gov.in",
+      "last_verified": "2026-06"
+    },
+    {
+      "id": "vishwakarma",
+      "name": "PM Vishwakarma",
+      "what_en": "For traditional artisans and craftspeople (including tailors): skill training with a daily stipend, a toolkit incentive, and collateral-free credit.",
+      "what_hi": "पारंपरिक कारीगरों के लिए (दर्ज़ी सहित): रोज़ के भत्ते के साथ कौशल प्रशिक्षण, टूलकिट प्रोत्साहन, और बिना गारंटी कर्ज़।",
+      "fits": ["tailoring", "stitching", "crafts", "pottery", "traditional skill"],
+      "step_en": "Register at pmvishwakarma.gov.in through a Common Service Centre (CSC).",
+      "step_hi": "कॉमन सर्विस सेंटर (CSC) के ज़रिए pmvishwakarma.gov.in पर रजिस्टर करें।",
+      "official_url": "https://pmvishwakarma.gov.in",
+      "last_verified": "2026-06"
+    }
+  ]
+}
