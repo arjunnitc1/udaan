@@ -243,8 +243,18 @@ export default function CoachPage() {
         },
         body: JSON.stringify({ messages: apiMessages.current }),
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+
       const data = await res.json();
+
+      // Handle API errors
+      if (!res.ok || data.error) {
+        setThinking(false);
+        const errMsg = data.error || `Error ${res.status}`;
+        setError(errMsg);
+        console.error("API error:", errMsg);
+        return;
+      }
+
       apiMessages.current.push({ role: "assistant", content: data.raw });
       setThinking(false);
 
@@ -273,7 +283,7 @@ export default function CoachPage() {
         });
       }
     } catch (e) {
-      console.error(e);
+      console.error("Fetch error:", e);
       setThinking(false);
       setError(t.err);
     }
