@@ -45,4 +45,46 @@ export const DEMO_KIT: Kit = {
   },
   action_en: "Send your WhatsApp message to 10 neighbours and your colony group today. Your first order is within 500 metres of your kitchen.",
   action_hi: "आज ही अपना WhatsApp संदेश 10 पड़ोसियों और कॉलोनी ग्रुप में भेजिए। आपका पहला ऑर्डर आपकी रसोई से 500 मीटर के अंदर है।",
+  instagram: {
+    bio_en: "🍱 Sunita's Ghar Ka Khana | Fresh home-cooked tiffins & famous achar | Lucknow | Order on WhatsApp 📲",
+    bio_hi: "🍱 सुनीता का घर का खाना | ताज़ा टिफ़िन और मशहूर अचार | लखनऊ | WhatsApp पर ऑर्डर करें 📲",
+    content_ideas_en: [
+      "Post a short video of you packing a tiffin — people love seeing the care that goes in",
+      "Share a photo of your achar jars lined up with price tags — makes it real and buyable",
+      "Post a 'Day in my kitchen' reel showing morning prep — builds trust with customers",
+    ],
+    hashtags: ["#GharKaKhana", "#TiffinService", "#LucknowFood", "#HomemadeAchar", "#WomenEntrepreneur"],
+  },
+  vendors: [
+    {
+      category_en: "Spices & Dry Ingredients",
+      category_hi: "मसाले और सूखा सामान",
+      online: [
+        { name: "IndiaMART", url: "indiamart.com", what_for: "Bulk spices and pickling ingredients at wholesale prices" },
+        { name: "JioMart Business", url: "jiomart.com", what_for: "Monthly grocery subscription at discounted rates" },
+      ],
+      local_tip_en: "Ask your local kirana about bulk rates — most give 10–15% off for monthly orders.",
+      local_tip_hi: "अपने किराना वाले से बल्क रेट पूछें — महीने के ऑर्डर पर 10–15% छूट मिलती है।",
+    },
+    {
+      category_en: "Tiffin Containers & Packaging",
+      category_hi: "टिफ़िन और पैकेजिंग",
+      online: [
+        { name: "Amazon Business", url: "amazon.in/business", what_for: "Stainless steel tiffins, leak-proof containers in bulk" },
+        { name: "Flipkart Wholesale", url: "flipkart.com", what_for: "Kraft paper bags, eco-friendly packaging with your name printed" },
+      ],
+      local_tip_en: "Sadar Bazaar in your city has the cheapest packaging wholesale.",
+      local_tip_hi: "आपके शहर के सदर बाज़ार में सबसे सस्ती पैकेजिंग मिलती है।",
+    },
+  ],
+  business_management: {
+    inventory_tip_en: "Keep a simple notebook with two columns: 'ingredients bought' and 'tiffins made'. Check it every Sunday to avoid wastage and plan your week's shopping.",
+    inventory_tip_hi: "एक छोटी नोटबुक में दो कॉलम रखें: 'सामान खरीदा' और 'टिफ़िन बने'। हर रविवार देखें।",
+    finance_tip_en: "Open a separate bank account just for your business. Every payment you receive goes there first. It shows you (and the bank) that this is a real business.",
+    finance_tip_hi: "बिज़नेस के लिए अलग बैंक अकाउंट खोलें। हर पेमेंट वहाँ जाए। यह आपको और बैंक को दिखाता है कि यह असली बिज़नेस है।",
+    first_week_en: "Day 1–2: Make 5 tiffins for neighbours for free and ask for honest feedback. Day 3–4: Take your first 5 paid orders from your building/colony. Day 5–7: Post on WhatsApp status every day.",
+    first_week_hi: "दिन 1–2: पड़ोसियों को 5 फ्री टिफ़िन दें और सच्ची राय लें। दिन 3–4: बिल्डिंग/कॉलोनी से 5 पेड ऑर्डर लें। दिन 5–7: हर दिन WhatsApp status डालें।",
+  },
+  motivation_message_en: "Sunita, 20 years in your kitchen wasn't just cooking — it was building mastery. Today that mastery becomes your income. Your colony doesn't know it yet, but their favourite tiffin didi is about to become their favourite entrepreneur.",
+  motivation_message_hi: "सुनीता जी, रसोई में 20 साल सिर्फ़ खाना बनाना नहीं था — यह महारत बनाना था। आज वह महारत आपकी कमाई बनती है। आपकी कॉलोनी को अभी पता नहीं, लेकिन उनकी पसंदीदा टिफ़िन दीदी जल्द उनकी पसंदीदा उद्यमी बनने वाली हैं।",
 };
