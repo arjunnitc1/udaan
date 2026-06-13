@@ -161,7 +161,6 @@ export default function CoachPage() {
   const [copied, setCopied] = useState(false);
   const [detectedLang, setDetectedLang] = useState("en-IN");
   const [demoMode, setDemoMode] = useState(false);
-  const [showDemoSelector, setShowDemoSelector] = useState(false);
 
   const apiMessages = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const sessionId = useRef(user?.sessionId ?? "s-" + Math.random().toString(36).slice(2));
@@ -198,7 +197,6 @@ export default function CoachPage() {
   }, [lang]);
 
   async function startDemo(scenario: DemoScenario) {
-    setShowDemoSelector(false);
     setDemoMode(true);
     logEvent(sessionId.current, "session_start", { demo: true, lang, scenario: scenario.id });
     const demoLabel = lang === "hi" ? `▶ डेमो: ${scenario.name_hi}` : `▶ Demo: ${scenario.name_en}`;
@@ -407,54 +405,12 @@ export default function CoachPage() {
           )}
           {error && <div className="err">{error}</div>}
 
-          {/* Demo selector (only at start) */}
+          {/* Demo button (only at start) */}
           {chat.length <= 1 && !kit && !demoMode && (
             <div style={{ textAlign: "center", marginTop: 24 }}>
-              {!showDemoSelector ? (
-                <button className="btn btn-ghost btn-sm" onClick={() => setShowDemoSelector(true)}>
-                  ▶ {lang === "hi" ? "डेमो देखें (API की ज़रूरत नहीं)" : "Watch demos (no API needed)"}
-                </button>
-              ) : (
-                <div style={{ background: "var(--sand)", borderRadius: 12, padding: 16, maxWidth: 340, margin: "0 auto" }}>
-                  <div style={{ fontSize: ".85rem", fontWeight: 600, marginBottom: 12, color: "var(--ink)" }}>
-                    {lang === "hi" ? "एक कहानी चुनें:" : "Choose a story:"}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {DEMO_SCENARIOS.map((scenario) => (
-                      <button
-                        key={scenario.id}
-                        onClick={() => startDemo(scenario)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "10px 14px",
-                          background: "#fff",
-                          border: "1.5px solid var(--line)",
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          fontFamily: "inherit",
-                          textAlign: "left",
-                          transition: "all .15s",
-                        }}
-                        onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--marigold)"; e.currentTarget.style.background = "var(--cream)"; }}
-                        onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.background = "#fff"; }}
-                      >
-                        <span style={{ fontSize: "1.3rem" }}>{scenario.emoji}</span>
-                        <span style={{ fontWeight: 600, fontSize: ".9rem", color: "var(--ink)" }}>
-                          {lang === "hi" ? scenario.name_hi : scenario.name_en}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setShowDemoSelector(false)}
-                    style={{ marginTop: 12, fontSize: ".8rem", color: "var(--ink-soft)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-                  >
-                    {lang === "hi" ? "रद्द करें" : "Cancel"}
-                  </button>
-                </div>
-              )}
+              <button className="btn btn-ghost btn-sm" onClick={() => startDemo(DEMO_SCENARIOS[0])}>
+                ▶ {lang === "hi" ? "डेमो देखें" : "Watch demo"}
+              </button>
             </div>
           )}
           <div ref={bottomRef} />
