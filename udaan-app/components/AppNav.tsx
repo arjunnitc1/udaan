@@ -25,11 +25,12 @@ export default function AppNav({ showNotifs, onNotifClick, unreadCount = 0 }: Ap
     { label: t.finance, path: "/finance" },
     { label: t.goals, path: "/goals" },
     { label: t.piggyBank, path: "/piggy-bank" },
+    { label: t.community, path: "/community" },
   ];
 
   return (
     <nav className="app-nav">
-      <div className="brand" onClick={() => router.push("/dashboard")}>
+      <div className="brand" onClick={() => router.push("/")}>
         <div className="kite" />
         <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
       </div>

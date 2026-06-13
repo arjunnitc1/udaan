@@ -218,7 +218,7 @@ export default function GoalsPage() {
             </div>
             <div className="form-group">
               <label className="form-label">Goal name</label>
-              <input className="form-input" placeholder="e.g. Daughter's school fees" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} />
+              <input className="form-input" placeholder="e.g. Buy sewing machine for business" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label">Target amount (₹)</label>

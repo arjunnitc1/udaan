@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, addNotification } from "@/lib/auth";
 import { DEMO_KIT, DEMO_SCRIPT } from "@/lib/demo";
+import { useLang } from "@/lib/language";
 import type { Kit } from "@/lib/types";
 
 type Lang = "en" | "hi";
@@ -63,6 +64,7 @@ type UIStrings = {
   cFb: string; cVendors: string; cMgmt: string; cAction: string; copy: string; copied: string;
   perMonth: string; perYear: string; scriptLabel: string; saveLabel: string; disclaimer: string;
   err: string; voiceOff: string; demoMode: string; voiceOn: string; voiceOff2: string;
+  cSell: string; cShip: string;
   tabs: string[];
 };
 const UI: Record<Lang, UIStrings> = {
@@ -89,12 +91,14 @@ const UI: Record<Lang, UIStrings> = {
     scriptLabel: "How to say your price:",
     saveLabel: "Your first savings habit:",
     disclaimer: "Estimates are illustrative, not guarantees. Scheme details: verify on official portals.",
-    err: "The coach couldn't connect. Check your internet and try again.",
+    err: "The coach couldn't connect. Please check your internet connection and try again.",
     voiceOff: "Voice not available in this browser. Please use Chrome.",
     demoMode: "▶ Demo mode: Sunita's real Udaan journey",
     voiceOn: "🔊 Voice on",
     voiceOff2: "🔇 Voice off",
-    tabs: ["Plan", "Social Media", "Vendors", "Business Tips"],
+    cSell: "Where to Sell Online",
+    cShip: "Delivery Partners",
+    tabs: ["Plan", "Social Media", "Sell & Ship", "Vendors", "Tips"],
   },
   hi: {
     greeting: "नमस्ते! मैं उड़ान हूँ, आपकी बिज़नेस कोच और आपकी सबसे बड़ी हिम्मत। बताइए अपने बारे में: आप कहाँ रहती हैं, और घर में कौन-कौन है? 🪁",
@@ -119,12 +123,14 @@ const UI: Record<Lang, UIStrings> = {
     scriptLabel: "दाम बताने का तरीका:",
     saveLabel: "बचत की पहली आदत:",
     disclaimer: "अनुमान केवल उदाहरण हैं, गारंटी नहीं। योजना की जानकारी आधिकारिक पोर्टल पर जाँचें।",
-    err: "कोच से कनेक्ट नहीं हो पाया। इंटरनेट जाँचें और फिर कोशिश करें।",
+    err: "कोच से कनेक्ट नहीं हो पाया। कृपया अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।",
     voiceOff: "इस ब्राउज़र में वॉइस उपलब्ध नहीं। Chrome इस्तेमाल करें।",
     demoMode: "▶ डेमो: सुनीता की उड़ान यात्रा",
     voiceOn: "🔊 आवाज़ चालू",
     voiceOff2: "🔇 आवाज़ बंद",
-    tabs: ["प्लान", "सोशल मीडिया", "सामान", "बिज़नेस टिप्स"],
+    cSell: "ऑनलाइन कहाँ बेचें",
+    cShip: "डिलीवरी पार्टनर",
+    tabs: ["प्लान", "सोशल मीडिया", "बेचें और भेजें", "सामान", "टिप्स"],
   },
 };
 
@@ -321,9 +327,15 @@ export default function CoachPage() {
     <>
       {/* Compact nav */}
       <nav className="app-nav">
-        <div className="brand" onClick={() => router.push("/dashboard")}>
+        <div className="brand" onClick={() => router.push("/")}>
           <div className="kite" />
           <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
+        </div>
+        <div className="nav-links" style={{ display: "flex", gap: 4 }}>
+          <button className="nav-link" onClick={() => router.push("/dashboard")}>Dashboard</button>
+          <button className="nav-link active">Coach</button>
+          <button className="nav-link" onClick={() => router.push("/finance")}>Finance</button>
+          <button className="nav-link" onClick={() => router.push("/community")}>Community</button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div className="lang-toggle">
@@ -338,7 +350,7 @@ export default function CoachPage() {
           >
             {voiceEnabled ? "🔊" : "🔇"}
           </button>
-          <button className="user-chip" onClick={() => router.push("/dashboard")}>← Dashboard</button>
+          <button className="user-chip" onClick={() => router.push("/dashboard")}>← Back</button>
         </div>
       </nav>
 
@@ -551,8 +563,101 @@ export default function CoachPage() {
               </>
             )}
 
-            {/* Tab 2: Vendors */}
+            {/* Tab 2: Sell & Ship - Marketplaces and Delivery */}
             {kitTab === 2 && (
+              <>
+                {/* Online Marketplaces */}
+                <div className="card">
+                  <h4>{t.cSell}</h4>
+                  <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 16 }}>
+                    {lang === "hi" ? "अपने प्रोडक्ट्स को इन प्लेटफॉर्म्स पर बेचें" : "Sell your products on these platforms"}
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {[
+                      { name: "Meesho", desc: lang === "hi" ? "रीसेलिंग और अपने प्रोडक्ट्स बेचें" : "Resell or sell your own products", url: "https://meesho.com", icon: "🛍️", color: "#F43397" },
+                      { name: "IndiaMart", desc: lang === "hi" ? "B2B बिज़नेस के लिए बेस्ट" : "Best for B2B wholesale business", url: "https://seller.indiamart.com", icon: "🏭", color: "#1A56DB" },
+                      { name: "Amazon Seller", desc: lang === "hi" ? "देश भर में बेचें" : "Sell across India", url: "https://sell.amazon.in", icon: "📦", color: "#FF9900" },
+                      { name: "Flipkart Seller", desc: lang === "hi" ? "करोड़ों ग्राहकों तक पहुंचें" : "Reach crores of customers", url: "https://seller.flipkart.com", icon: "🛒", color: "#2874F0" },
+                      { name: "JioMart Partner", desc: lang === "hi" ? "लोकल डिलीवरी के लिए" : "For local delivery", url: "https://www.jiomart.com/seller", icon: "🏪", color: "#0A3D62" },
+                    ].map((mp) => (
+                      <div
+                        key={mp.name}
+                        onClick={() => window.open(mp.url, "_blank")}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "12px 14px",
+                          background: "#fff",
+                          border: "1px solid var(--line)",
+                          borderRadius: "var(--radius-sm)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ fontSize: "1.5rem" }}>{mp.icon}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: ".9rem" }}>{mp.name}</div>
+                          <div style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>{mp.desc}</div>
+                        </div>
+                        <span style={{ fontSize: ".8rem", color: mp.color }}>→</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Delivery Partners */}
+                <div className="card" style={{ marginTop: 16 }}>
+                  <h4>{t.cShip}</h4>
+                  <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 16 }}>
+                    {lang === "hi" ? "अपने ऑर्डर्स कहीं भी भेजें" : "Ship your orders anywhere"}
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {[
+                      { name: "Shiprocket", desc: lang === "hi" ? "सबसे सस्ती शिपिंग" : "Cheapest shipping rates", url: "https://www.shiprocket.in", icon: "🚀" },
+                      { name: "Delhivery", desc: lang === "hi" ? "तेज़ डिलीवरी" : "Fast delivery", url: "https://www.delhivery.com", icon: "📬" },
+                      { name: "BlueDart", desc: lang === "hi" ? "प्रीमियम सर्विस" : "Premium service", url: "https://www.bluedart.com", icon: "✈️" },
+                      { name: "DTDC", desc: lang === "hi" ? "पूरे भारत में" : "Pan India coverage", url: "https://www.dtdc.in", icon: "🚚" },
+                      { name: "India Post", desc: lang === "hi" ? "सबसे सस्ता विकल्प" : "Most affordable option", url: "https://www.indiapost.gov.in", icon: "📮" },
+                    ].map((dp) => (
+                      <div
+                        key={dp.name}
+                        onClick={() => window.open(dp.url, "_blank")}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "12px 14px",
+                          background: "#fff",
+                          border: "1px solid var(--line)",
+                          borderRadius: "var(--radius-sm)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ fontSize: "1.5rem" }}>{dp.icon}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: ".9rem" }}>{dp.name}</div>
+                          <div style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>{dp.desc}</div>
+                        </div>
+                        <span style={{ fontSize: ".8rem", color: "var(--indigo)" }}>→</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Local Markets Tip */}
+                <div className="card" style={{ marginTop: 16, background: "var(--sand)" }}>
+                  <h4>📍 {lang === "hi" ? "लोकल मार्केट्स" : "Local Markets"}</h4>
+                  <p style={{ fontSize: ".88rem", color: "var(--ink)", lineHeight: 1.6 }}>
+                    {lang === "hi"
+                      ? "अपने शहर की लोकल मंडी, हाट बाज़ार, और weekly markets में स्टॉल लगाकर भी बेच सकती हैं। शुरुआत में यह सबसे आसान तरीका है!"
+                      : "You can also sell at your city's local mandis, haat bazaars, and weekly markets. This is the easiest way to start!"}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Tab 3: Vendors */}
+            {kitTab === 3 && (
               <div className="card">
                 <h4>{t.cVendors}</h4>
                 {kit.vendors?.map((v, i) => (
@@ -575,8 +680,8 @@ export default function CoachPage() {
               </div>
             )}
 
-            {/* Tab 3: Business Tips */}
-            {kitTab === 3 && kit.business_management && (
+            {/* Tab 4: Business Tips */}
+            {kitTab === 4 && kit.business_management && (
               <div className="card">
                 <h4>{t.cMgmt}</h4>
                 <div className="mgmt-row">
@@ -593,7 +698,7 @@ export default function CoachPage() {
                 </div>
               </div>
             )}
-            {kitTab === 3 && !kit.business_management && (
+            {kitTab === 4 && !kit.business_management && (
               <div className="card"><p style={{ color: "var(--ink-soft)", fontSize: ".9rem" }}>Business management tips will appear in your next coach session!</p></div>
             )}
 

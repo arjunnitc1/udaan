@@ -30,6 +30,7 @@ const L = {
       { label: "🪡 I stitch & tailor", text: "I stitch and tailor clothes at home" },
       { label: "📚 I can teach kids", text: "I can teach school children" },
       { label: "🌿 I do mehendi", text: "I do beautiful mehendi designs" },
+      { label: "✨ Other skills", text: "I have other skills I want to turn into a business" },
     ],
   },
   hi: {
@@ -54,6 +55,7 @@ const L = {
       { label: "🪡 मैं सिलाई करती हूँ", text: "मैं घर पर कपड़े सिलती हूँ" },
       { label: "📚 मैं बच्चों को पढ़ा सकती हूँ", text: "मैं स्कूल के बच्चों को पढ़ाती हूँ" },
       { label: "🌿 मैं मेहंदी लगाती हूँ", text: "मैं सुंदर मेहंदी लगाती हूँ" },
+      { label: "✨ अन्य कौशल", text: "मेरे पास अन्य कौशल हैं जिन्हें मैं बिज़नेस में बदलना चाहती हूँ" },
     ],
   },
 };
@@ -108,7 +110,7 @@ export default function LandingPage() {
           <p className="sub">{t.sub}</p>
           <div className="cta-row">
             <button className="btn btn-primary" onClick={() => go()}>{t.cta}</button>
-            <button className="btn btn-ghost-light" onClick={() => router.push("/auth")}>{t.demo}</button>
+            <button className="btn btn-ghost-light" onClick={() => router.push("/demo")}>{t.demo}</button>
           </div>
           <div className="trust">{t.trust}</div>
           <div className="skill-chips">
