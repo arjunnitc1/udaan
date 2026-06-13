@@ -20,7 +20,7 @@ export type UserProfile = {
 
 type AuthContextType = {
   user: UserProfile | null;
-  login: (phone: string) => void;
+  login: (phone: string, name?: string) => void;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   isLoggedIn: boolean;
@@ -42,15 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  function login(phone: string) {
+  function login(phone: string, name?: string) {
     const newUser: UserProfile = {
       phone,
+      name: name || undefined,
       sessionId: "s-" + Math.random().toString(36).slice(2, 10),
       createdAt: Date.now(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
     setUser(newUser);
-    seedWelcomeNotification();
+    seedWelcomeNotification(name);
   }
 
   function logout() {
@@ -121,14 +122,18 @@ export function markAllRead() {
   localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
 }
 
-function seedWelcomeNotification() {
+function seedWelcomeNotification(name?: string) {
   const existing = getNotifications();
   if (existing.length > 0) return;
+  const greeting = name ? `Welcome to Udaan, ${name}!` : "Welcome to Udaan!";
+  const personalBody = name
+    ? `${name}, you just took the first step of a thousand. The women who changed their lives started exactly here — with one tap. Your journey begins now, didi!`
+    : "You just took the first step of a thousand. The women who changed their lives started exactly here — with one tap. Your journey begins now, didi!";
   addNotification({
     type: "welcome",
     emoji: "🦸‍♀️",
-    title: "Welcome to Udaan!",
-    body: "You just took the first step of a thousand. The women who changed their lives started exactly here — with one tap. Your journey begins now, didi!",
+    title: greeting,
+    body: personalBody,
   });
   addNotification({
     type: "motivation",

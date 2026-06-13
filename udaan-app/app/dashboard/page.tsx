@@ -41,7 +41,7 @@ function AppNav({ onNotifClick, unreadCount }: { onNotifClick: () => void; unrea
         {[
           { label: "Dashboard", path: "/dashboard" },
           { label: "My Coach", path: "/coach" },
-          { label: "Community", path: "/community" },
+          { label: "Finance", path: "/finance" },
           { label: "Goals", path: "/goals" },
           { label: "Piggy Bank", path: "/piggy-bank" },
         ].map((l) => (
@@ -124,7 +124,7 @@ export default function Dashboard() {
         <div className="quick-actions">
           {[
             { icon: "🤖", label: "Talk to Coach", sub: "Get your plan", path: "/coach" },
-            { icon: "🏆", label: "Community", sub: "Meet heroes", path: "/community" },
+            { icon: "💰", label: "Finance", sub: "Track money", path: "/finance" },
             { icon: "🎯", label: "My Goals", sub: "Track progress", path: "/goals" },
             { icon: "🐷", label: "Piggy Bank", sub: "Save & grow", path: "/piggy-bank" },
           ].map((a) => (

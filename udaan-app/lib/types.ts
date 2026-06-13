@@ -38,6 +38,18 @@ export type Kit = {
     content_ideas_en?: string[];
     hashtags?: string[];
   };
+  // FB Marketplace integration
+  facebook_marketplace?: {
+    listing_title_en?: string;
+    listing_title_hi?: string;
+    listing_description_en?: string;
+    listing_description_hi?: string;
+    category?: string;
+    pricing_tips_en?: string;
+    pricing_tips_hi?: string;
+    photo_tips_en?: string[];
+    photo_tips_hi?: string[];
+  };
   vendors?: {
     category_en?: string;
     category_hi?: string;

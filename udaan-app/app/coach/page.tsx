@@ -19,7 +19,7 @@ function detectLangCode(text: string): string {
   return "en-IN";
 }
 
-function speak(text: string, langCode: string) {
+function speak(text: string, langCode: string, onStart?: () => void, onEnd?: () => void) {
   if (typeof window === "undefined") return;
   const synth = window.speechSynthesis;
   synth.cancel();
@@ -27,9 +27,24 @@ function speak(text: string, langCode: string) {
   utt.lang = langCode;
   utt.rate = 0.92;
   utt.pitch = 1.05;
-  const voices = synth.getVoices();
-  const match = voices.find((v) => v.lang.startsWith(langCode.split("-")[0]));
-  if (match) utt.voice = match;
+
+  // Load voices if not already loaded
+  let voices = synth.getVoices();
+  if (voices.length === 0) {
+    synth.onvoiceschanged = () => {
+      voices = synth.getVoices();
+      const match = voices.find((v) => v.lang.startsWith(langCode.split("-")[0]));
+      if (match) utt.voice = match;
+    };
+  } else {
+    const match = voices.find((v) => v.lang.startsWith(langCode.split("-")[0]));
+    if (match) utt.voice = match;
+  }
+
+  utt.onstart = () => onStart?.();
+  utt.onend = () => onEnd?.();
+  utt.onerror = () => onEnd?.();
+
   synth.speak(utt);
 }
 
@@ -45,7 +60,7 @@ const LANG_LABELS: Record<string, string> = {
 type UIStrings = {
   greeting: string; placeholder: string; restart: string; kitEyebrow: string; kitTitle: string;
   cBiz: string; cPrice: string; cWa: string; cSchemes: string; cYear: string; cInsta: string;
-  cVendors: string; cMgmt: string; cAction: string; copy: string; copied: string;
+  cFb: string; cVendors: string; cMgmt: string; cAction: string; copy: string; copied: string;
   perMonth: string; perYear: string; scriptLabel: string; saveLabel: string; disclaimer: string;
   err: string; voiceOff: string; demoMode: string; voiceOn: string; voiceOff2: string;
   tabs: string[];
@@ -63,6 +78,7 @@ const UI: Record<Lang, UIStrings> = {
     cSchemes: "Government support for you",
     cYear: "Your possible year",
     cInsta: "Instagram setup",
+    cFb: "Facebook Marketplace",
     cVendors: "Where to source materials",
     cMgmt: "Running your business",
     cAction: "Do this today",
@@ -78,7 +94,7 @@ const UI: Record<Lang, UIStrings> = {
     demoMode: "▶ Demo mode — Sunita's real Udaan journey",
     voiceOn: "🔊 Voice on",
     voiceOff2: "🔇 Voice off",
-    tabs: ["Plan", "Instagram", "Vendors", "Business Tips"],
+    tabs: ["Plan", "Social Media", "Vendors", "Business Tips"],
   },
   hi: {
     greeting: "नमस्ते! मैं उड़ान हूँ — आपकी बिज़नेस कोच और आपकी सबसे बड़ी हिम्मत। बताइए अपने बारे में — आप कहाँ रहती हैं, और घर में कौन-कौन है? 🪁",
@@ -92,6 +108,7 @@ const UI: Record<Lang, UIStrings> = {
     cSchemes: "सरकारी योजनाएँ आपके लिए",
     cYear: "आपका संभावित साल",
     cInsta: "Instagram सेटअप",
+    cFb: "Facebook Marketplace",
     cVendors: "सामान कहाँ से लें",
     cMgmt: "बिज़नेस कैसे चलाएँ",
     cAction: "आज ही करें",
@@ -107,7 +124,7 @@ const UI: Record<Lang, UIStrings> = {
     demoMode: "▶ डेमो — सुनीता की उड़ान यात्रा",
     voiceOn: "🔊 आवाज़ चालू",
     voiceOff2: "🔇 आवाज़ बंद",
-    tabs: ["प्लान", "Instagram", "सामान", "बिज़नेस टिप्स"],
+    tabs: ["प्लान", "सोशल मीडिया", "सामान", "बिज़नेस टिप्स"],
   },
 };
 
@@ -152,7 +169,9 @@ export default function CoachPage() {
     if (isLoggedIn && chat.length === 0) {
       setChat([{ who: "coach", text: t.greeting }]);
       logEvent(sessionId.current, "session_start", { lang });
-      if (voiceEnabled) speak(t.greeting, lang === "hi" ? "hi-IN" : "en-IN");
+      if (voiceEnabled) {
+        speak(t.greeting, lang === "hi" ? "hi-IN" : "en-IN", () => setSpeaking(true), () => setSpeaking(false));
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, isLoading]);
@@ -179,7 +198,9 @@ export default function CoachPage() {
       await wait(1300);
       const text = lang === "hi" ? step.hi : step.en;
       setChat((c) => [...c, { who: step.who, text }]);
-      if (voiceEnabled && step.who === "coach") speak(text, lang === "hi" ? "hi-IN" : "en-IN");
+      if (voiceEnabled && step.who === "coach") {
+        speak(text, lang === "hi" ? "hi-IN" : "en-IN", () => setSpeaking(true), () => setSpeaking(false));
+      }
     }
     await wait(1100);
     setThinking(true);
@@ -187,7 +208,9 @@ export default function CoachPage() {
     setThinking(false);
     const introText = bi(DEMO_KIT.intro_en, DEMO_KIT.intro_hi);
     setChat((c) => [...c, { who: "coach", text: introText }]);
-    if (voiceEnabled) speak(introText, lang === "hi" ? "hi-IN" : "en-IN");
+    if (voiceEnabled) {
+      speak(introText, lang === "hi" ? "hi-IN" : "en-IN", () => setSpeaking(true), () => setSpeaking(false));
+    }
     await wait(800);
     setKit(DEMO_KIT);
     logEvent(sessionId.current, "kit_generated", { demo: true });
@@ -223,11 +246,15 @@ export default function CoachPage() {
       if (reply.type === "question") {
         const msgText = bi(reply.text_en, reply.text_hi);
         setChat((c) => [...c, { who: "coach", text: msgText }]);
-        if (voiceEnabled) speak(msgText, detected);
+        if (voiceEnabled) {
+          speak(msgText, detected, () => setSpeaking(true), () => setSpeaking(false));
+        }
       } else if (reply.type === "kit") {
         const introText = bi(reply.intro_en, reply.intro_hi) || "🎉";
         setChat((c) => [...c, { who: "coach", text: introText }]);
-        if (voiceEnabled) speak(introText, detected);
+        if (voiceEnabled) {
+          speak(introText, detected, () => setSpeaking(true), () => setSpeaking(false));
+        }
         await wait(700);
         setKit(reply as Kit);
         logEvent(sessionId.current, "kit_generated", { demo: false });
@@ -317,11 +344,34 @@ export default function CoachPage() {
 
       <div className="coach-layout">
         <div className="coach-section">
+          {/* Voice mode banner */}
+          {voiceEnabled && (
+            <div className="voice-mode-banner">
+              <div className="voice-wave">
+                <span /><span /><span /><span /><span />
+              </div>
+              <span>Voice Mode Active • {lang === "hi" ? "हिन्दी" : "English"}</span>
+              {speaking && (
+                <span style={{ opacity: 0.8, fontSize: ".75rem" }}>
+                  Coach is speaking...
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Chat */}
           {chat.map((m, i) => (
             <div key={i} className={`msg ${m.who === "coach" ? "coach-m" : "user-m"}`}>
               {m.who === "coach" && <div className="avatar"><span /></div>}
-              <div className="bubble">{m.text}</div>
+              <div className="bubble">
+                {m.text}
+                {m.who === "coach" && speaking && i === chat.length - 1 && (
+                  <span className="speaking-indicator">
+                    <span className="mini-wave"><span /><span /><span /></span>
+                    Speaking
+                  </span>
+                )}
+              </div>
             </div>
           ))}
           {thinking && (
@@ -417,25 +467,88 @@ export default function CoachPage() {
               </>
             )}
 
-            {/* Tab 1: Instagram */}
-            {kitTab === 1 && kit.instagram && (
-              <div className="card insta-card">
-                <h4>{t.cInsta}</h4>
-                <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Your Instagram bio:</div>
-                <div className="insta-bio">{bi(kit.instagram.bio_en, kit.instagram.bio_hi)}</div>
-                <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Post ideas to start:</div>
-                {kit.instagram.content_ideas_en?.map((idea, i) => (
-                  <div className="insta-idea" key={i}>📸 {idea}</div>
-                ))}
-                {kit.instagram.hashtags && (
-                  <div className="hashtag-wrap">
-                    {kit.instagram.hashtags.map((h, i) => <span className="hashtag" key={i}>{h}</span>)}
+            {/* Tab 1: Social Media (Instagram + FB Marketplace) */}
+            {kitTab === 1 && (
+              <>
+                {/* Instagram Section */}
+                {kit.instagram && (
+                  <div className="card insta-card">
+                    <h4>{t.cInsta}</h4>
+                    <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Your Instagram bio:</div>
+                    <div className="insta-bio">{bi(kit.instagram.bio_en, kit.instagram.bio_hi)}</div>
+                    <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Post ideas to start:</div>
+                    {kit.instagram.content_ideas_en?.map((idea, i) => (
+                      <div className="insta-idea" key={i}>📸 {idea}</div>
+                    ))}
+                    {kit.instagram.hashtags && (
+                      <div className="hashtag-wrap">
+                        {kit.instagram.hashtags.map((h, i) => <span className="hashtag" key={i}>{h}</span>)}
+                      </div>
+                    )}
+                    <button
+                      className="ig-btn"
+                      style={{ marginTop: 12 }}
+                      onClick={() => window.open("https://www.instagram.com/accounts/login/", "_blank")}
+                    >
+                      📱 Create Instagram Page
+                    </button>
                   </div>
                 )}
-              </div>
-            )}
-            {kitTab === 1 && !kit.instagram && (
-              <div className="card"><p style={{ color: "var(--ink-soft)", fontSize: ".9rem" }}>Ask your coach about Instagram setup in your next conversation!</p></div>
+
+                {/* FB Marketplace Section */}
+                {kit.facebook_marketplace && (
+                  <div className="card fb-card" style={{ marginTop: kit.instagram ? 16 : 0 }}>
+                    <h4>{t.cFb}</h4>
+                    {kit.facebook_marketplace.category && (
+                      <div className="fb-category">📂 {kit.facebook_marketplace.category}</div>
+                    )}
+                    <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Your listing title:</div>
+                    <div className="fb-listing-title">{bi(kit.facebook_marketplace.listing_title_en, kit.facebook_marketplace.listing_title_hi)}</div>
+                    <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Listing description:</div>
+                    <div className="fb-listing-desc">{bi(kit.facebook_marketplace.listing_description_en, kit.facebook_marketplace.listing_description_hi)}</div>
+                    {kit.facebook_marketplace.photo_tips_en && (
+                      <>
+                        <div style={{ marginBottom: 8, fontSize: ".8rem", color: "rgba(255,255,255,.7)" }}>Photo tips:</div>
+                        {kit.facebook_marketplace.photo_tips_en.map((tip, i) => (
+                          <div className="fb-tip" key={i}>
+                            <span className="fb-tip-icon">📷</span>
+                            <span>{tip}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    <button
+                      className="fb-deep-link"
+                      onClick={() => window.open("https://www.facebook.com/marketplace/create/item", "_blank")}
+                    >
+                      🛒 List on FB Marketplace
+                    </button>
+                  </div>
+                )}
+
+                {/* Fallback if neither exists */}
+                {!kit.instagram && !kit.facebook_marketplace && (
+                  <div className="card">
+                    <p style={{ color: "var(--ink-soft)", fontSize: ".9rem", textAlign: "center" }}>
+                      Ask your coach about social media setup in your next conversation!
+                    </p>
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16 }}>
+                      <button
+                        className="ig-btn"
+                        onClick={() => window.open("https://www.instagram.com/accounts/login/", "_blank")}
+                      >
+                        📱 Create Instagram
+                      </button>
+                      <button
+                        className="fb-deep-link"
+                        onClick={() => window.open("https://www.facebook.com/marketplace/create/item", "_blank")}
+                      >
+                        🛒 FB Marketplace
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Tab 2: Vendors */}

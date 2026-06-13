@@ -9,18 +9,26 @@ const DUMMY_OTP = "123456";
 export default function AuthPage() {
   const { login, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
-  const [mode, setMode] = useState<"phone" | "otp">("phone");
+  const [mode, setMode] = useState<"phone" | "otp" | "name">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isLoading && isLoggedIn) router.replace("/dashboard");
   }, [isLoggedIn, isLoading, router]);
+
+  useEffect(() => {
+    if (mode === "name") {
+      setTimeout(() => nameRef.current?.focus(), 100);
+    }
+  }, [mode]);
 
   function sendOtp() {
     const digits = phone.replace(/\D/g, "");
@@ -59,8 +67,8 @@ export default function AuthPage() {
     setError("");
     setTimeout(() => {
       if (entered === DUMMY_OTP) {
-        login(phone);
-        router.replace("/dashboard");
+        setVerifying(false);
+        setMode("name");
       } else {
         setVerifying(false);
         setError("Incorrect OTP. (Hint: use 123456)");
@@ -68,6 +76,17 @@ export default function AuthPage() {
         otpRefs.current[0]?.focus();
       }
     }, 900);
+  }
+
+  function completeSignup() {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError("Please tell us what you'd like to be called.");
+      return;
+    }
+    setError("");
+    login(phone, trimmedName);
+    router.replace("/dashboard");
   }
 
   if (isLoading) return null;
@@ -80,12 +99,14 @@ export default function AuthPage() {
         </div>
 
         <h2 className="serif">
-          {mode === "phone" ? "Welcome to Udaan" : "Verify your number"}
+          {mode === "phone" ? "Welcome to Udaan" : mode === "otp" ? "Verify your number" : "Almost there!"}
         </h2>
         <p className="sub">
           {mode === "phone"
             ? "उड़ान — Your skill. Your business. Your flight.\nEnter your mobile number to get started."
-            : `We sent a 6-digit OTP to +91 ${phone}`}
+            : mode === "otp"
+            ? `We sent a 6-digit OTP to +91 ${phone}`
+            : "What do you want to be called?\nहम आपको क्या बुलाएँ?"}
         </p>
 
         {error && <div className="auth-error">{error}</div>}
@@ -118,7 +139,7 @@ export default function AuthPage() {
               ) : "Send OTP"}
             </button>
           </>
-        ) : (
+        ) : mode === "otp" ? (
           <>
             <div className="otp-wrap">
               {otp.map((digit, i) => (
@@ -150,6 +171,28 @@ export default function AuthPage() {
               onClick={() => { setMode("phone"); setOtp(["","","","","",""]); setError(""); }}
             >
               Change number
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="phone-input-wrap" style={{ marginBottom: 14 }}>
+              <input
+                ref={nameRef}
+                type="text"
+                placeholder="Your name / आपका नाम"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && completeSignup()}
+                style={{ paddingLeft: 16 }}
+              />
+            </div>
+            <p className="auth-hint">This is how your coach will address you</p>
+            <button
+              className="btn btn-primary full-width"
+              onClick={completeSignup}
+              disabled={!name.trim()}
+            >
+              Let&apos;s Begin! 🪁
             </button>
           </>
         )}
