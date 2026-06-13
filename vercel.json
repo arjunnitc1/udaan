@@ -1,4 +1,5 @@
 {
+  "framework": "nextjs",
   "buildCommand": "cd udaan-app && npm run build",
   "installCommand": "cd udaan-app && npm install",
   "outputDirectory": "udaan-app/.next"
