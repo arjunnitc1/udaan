@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import AppNav from "@/components/AppNav";
+import { useLang } from "@/lib/language";
 
 type Transaction = {
   id: string;
@@ -11,11 +13,66 @@ type Transaction = {
   category: string;
   description: string;
   date: number;
+  imageData?: string; // Base64 image data for bill scan
 };
 
 const INCOME_CATEGORIES = ["Sales", "Services", "Orders", "Other Income"];
 const EXPENSE_CATEGORIES = ["Materials", "Transport", "Phone/Data", "Equipment", "Other Expense"];
 const STORAGE_KEY = "udaan_transactions";
+
+// Keywords for detecting transaction type from voice
+const INCOME_KEYWORDS = ["sold", "earned", "received", "got", "income", "payment", "order", "बेचा", "कमाया", "मिला", "आया", "आमदनी"];
+const EXPENSE_KEYWORDS = ["spent", "paid", "bought", "expense", "cost", "खर्च", "दिया", "खरीदा", "लगा"];
+
+// Parse voice input to extract transaction details
+function parseVoiceInput(text: string): { type: "income" | "expense"; amount: number; description: string; category: string } | null {
+  const lowerText = text.toLowerCase();
+
+  // Detect type
+  let type: "income" | "expense" = "income";
+  if (EXPENSE_KEYWORDS.some(k => lowerText.includes(k))) {
+    type = "expense";
+  } else if (INCOME_KEYWORDS.some(k => lowerText.includes(k))) {
+    type = "income";
+  }
+
+  // Extract amount (look for numbers with optional rupee symbol)
+  const amountMatch = text.match(/₹?\s*(\d+(?:,\d+)*(?:\.\d+)?)|(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rupees?|rs\.?|रुपये|रुपए)/i);
+  if (!amountMatch) {
+    // Try to find any number
+    const numMatch = text.match(/\d+/);
+    if (!numMatch) return null;
+    const amount = parseFloat(numMatch[0].replace(/,/g, ""));
+    return {
+      type,
+      amount,
+      description: text,
+      category: type === "income" ? "Sales" : "Other Expense",
+    };
+  }
+
+  const amount = parseFloat((amountMatch[1] || amountMatch[2]).replace(/,/g, ""));
+  if (isNaN(amount) || amount <= 0) return null;
+
+  // Detect category based on keywords
+  let category = type === "income" ? "Sales" : "Other Expense";
+  if (type === "income") {
+    if (/order|आर्डर/i.test(lowerText)) category = "Orders";
+    else if (/service|सेवा/i.test(lowerText)) category = "Services";
+  } else {
+    if (/transport|travel|auto|taxi|bus|train|यातायात|ऑटो/i.test(lowerText)) category = "Transport";
+    else if (/material|सामान|raw/i.test(lowerText)) category = "Materials";
+    else if (/phone|mobile|data|recharge|फोन|रिचार्ज/i.test(lowerText)) category = "Phone/Data";
+    else if (/equipment|machine|tool|मशीन/i.test(lowerText)) category = "Equipment";
+  }
+
+  return {
+    type,
+    amount,
+    description: text,
+    category,
+  };
+}
 
 function getTransactions(): Transaction[] {
   if (typeof window === "undefined") return [];
@@ -34,38 +91,10 @@ function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
-function AppNav() {
-  const router = useRouter();
-  const { logout } = useAuth();
-  return (
-    <nav className="app-nav">
-      <div className="brand" onClick={() => router.push("/dashboard")}>
-        <div className="kite" />
-        <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
-      </div>
-      <div className="nav-links">
-        {[
-          { label: "Dashboard", path: "/dashboard" },
-          { label: "My Coach", path: "/coach" },
-          { label: "Finance", path: "/finance" },
-          { label: "Goals", path: "/goals" },
-          { label: "Piggy Bank", path: "/piggy-bank" },
-        ].map((l) => (
-          <button key={l.path} className={`nav-link${typeof window !== "undefined" && window.location.pathname === l.path ? " active" : ""}`} onClick={() => router.push(l.path)}>
-            {l.label}
-          </button>
-        ))}
-      </div>
-      <div className="nav-right">
-        <button className="user-chip" onClick={logout}>Sign out</button>
-      </div>
-    </nav>
-  );
-}
-
 export default function FinancePage() {
   const { user, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const { lang } = useLang();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [txnType, setTxnType] = useState<"income" | "expense">("income");
@@ -73,6 +102,16 @@ export default function FinancePage() {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [viewMode, setViewMode] = useState<"all" | "income" | "expense">("all");
+  const [billImage, setBillImage] = useState<string | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceText, setVoiceText] = useState("");
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [voiceParsed, setVoiceParsed] = useState<ReturnType<typeof parseVoiceInput>>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) { router.replace("/auth"); return; }
@@ -80,6 +119,22 @@ export default function FinancePage() {
       setTransactions(getTransactions());
     }
   }, [isLoggedIn, isLoading, router]);
+
+  function handleImageCapture(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageData = event.target?.result as string;
+      setBillImage(imageData);
+      setIsProcessingImage(false);
+      // In a real app, you would send this to an OCR API
+      // For now, we'll just store the image
+    };
+    reader.readAsDataURL(file);
+  }
 
   function addTransaction() {
     if (!amount || !category) return;
@@ -90,6 +145,7 @@ export default function FinancePage() {
       category,
       description,
       date: Date.now(),
+      imageData: billImage || undefined,
     };
     const updated = [newTxn, ...transactions];
     setTransactions(updated);
@@ -98,12 +154,86 @@ export default function FinancePage() {
     setAmount("");
     setCategory("");
     setDescription("");
+    setBillImage(null);
   }
 
   function deleteTransaction(id: string) {
     const updated = transactions.filter((t) => t.id !== id);
     setTransactions(updated);
     saveTransactions(updated);
+  }
+
+  // Voice recognition functions
+  function startVoiceInput() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      alert(lang === "hi" ? "आपके ब्राउज़र में वॉइस सपोर्ट नहीं है। Chrome इस्तेमाल करें।" : "Voice not supported in this browser. Please use Chrome.");
+      return;
+    }
+
+    setShowVoiceModal(true);
+    setVoiceText("");
+    setVoiceParsed(null);
+
+    const rec = new SR();
+    rec.lang = lang === "hi" ? "hi-IN" : lang === "bn" ? "bn-IN" : lang === "ml" ? "ml-IN" : "en-IN";
+    rec.interimResults = true;
+    rec.continuous = false;
+
+    rec.onstart = () => setIsListening(true);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((r: any) => r[0].transcript)
+        .join("");
+      setVoiceText(transcript);
+
+      // Parse on final result
+      if (e.results[e.results.length - 1].isFinal) {
+        const parsed = parseVoiceInput(transcript);
+        setVoiceParsed(parsed);
+      }
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    rec.onerror = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = rec;
+    rec.start();
+  }
+
+  function stopVoiceInput() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }
+
+  function confirmVoiceTransaction() {
+    if (!voiceParsed) return;
+    const newTxn: Transaction = {
+      id: Math.random().toString(36).slice(2),
+      type: voiceParsed.type,
+      amount: voiceParsed.amount,
+      category: voiceParsed.category,
+      description: voiceParsed.description,
+      date: Date.now(),
+    };
+    const updated = [newTxn, ...transactions];
+    setTransactions(updated);
+    saveTransactions(updated);
+    setShowVoiceModal(false);
+    setVoiceText("");
+    setVoiceParsed(null);
   }
 
   if (isLoading || !isLoggedIn) return null;
@@ -138,7 +268,7 @@ export default function FinancePage() {
         <div className="page-header">
           <div className="eyebrow">FINANCIAL MANAGEMENT</div>
           <h2 className="serif">Track Your Money, {displayName}! 💰</h2>
-          <p>Keep track of every rupee — what comes in and what goes out.</p>
+          <p>Keep track of every rupee: what comes in and what goes out.</p>
         </div>
 
         {/* Stats cards */}
@@ -177,7 +307,7 @@ export default function FinancePage() {
         </div>
 
         {/* Add transaction buttons */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
           <button
             className="btn btn-primary"
             style={{ flex: 1 }}
@@ -193,6 +323,30 @@ export default function FinancePage() {
             + Add Expense
           </button>
         </div>
+
+        {/* Voice entry button */}
+        <button
+          onClick={startVoiceInput}
+          style={{
+            width: "100%",
+            padding: "14px 20px",
+            marginBottom: 20,
+            background: "linear-gradient(135deg, var(--indigo-light), var(--indigo))",
+            color: "#fff",
+            border: "none",
+            borderRadius: "var(--radius)",
+            fontSize: ".95rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <span style={{ fontSize: "1.2rem" }}>🎤</span>
+          {lang === "hi" ? "बोलकर एंट्री करें" : lang === "bn" ? "কথা বলে এন্ট্রি করুন" : lang === "ml" ? "സംസാരിച്ച് എൻട്രി ചെയ്യുക" : "Speak to Add Entry"}
+        </button>
 
         {/* Filter tabs */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
@@ -358,6 +512,73 @@ export default function FinancePage() {
               />
             </div>
 
+            {/* Bill Image Capture */}
+            <div className="form-group">
+              <label className="form-label">Attach Bill/Receipt (optional)</label>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 16px",
+                    background: "var(--sand)",
+                    borderRadius: "var(--radius)",
+                    cursor: "pointer",
+                    fontSize: ".9rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>📷</span>
+                  <span>{billImage ? "Change Photo" : "Take Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageCapture}
+                    style={{ display: "none" }}
+                  />
+                </label>
+                {isProcessingImage && (
+                  <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Processing...</span>
+                )}
+              </div>
+              {billImage && (
+                <div style={{ marginTop: 12, position: "relative" }}>
+                  <img
+                    src={billImage}
+                    alt="Bill preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: 150,
+                      objectFit: "cover",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--line)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setBillImage(null)}
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      background: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: 28,
+                      height: 28,
+                      cursor: "pointer",
+                      fontSize: ".9rem",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               className="btn btn-primary full-width"
               onClick={addTransaction}
@@ -369,6 +590,150 @@ export default function FinancePage() {
           </div>
         </div>
       )}
+
+      {/* Voice Input Modal */}
+      {showVoiceModal && (
+        <div className="modal-overlay" onClick={() => { stopVoiceInput(); setShowVoiceModal(false); }}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-handle" />
+            <h3 className="modal-title">
+              🎤 {lang === "hi" ? "बोलकर एंट्री करें" : "Voice Entry"}
+            </h3>
+
+            {/* Voice animation */}
+            <div style={{
+              textAlign: "center",
+              padding: "30px 0",
+            }}>
+              <div
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: "50%",
+                  background: isListening
+                    ? "linear-gradient(135deg, #EF4444, #DC2626)"
+                    : "linear-gradient(135deg, var(--indigo-light), var(--indigo))",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                  cursor: "pointer",
+                  boxShadow: isListening ? "0 0 0 8px rgba(239, 68, 68, 0.2)" : "0 4px 20px rgba(0,0,0,0.15)",
+                  animation: isListening ? "pulse 1.5s infinite" : "none",
+                }}
+              >
+                <span style={{ fontSize: "2.5rem" }}>{isListening ? "⏹️" : "🎤"}</span>
+              </div>
+              <p style={{ fontSize: ".9rem", color: "var(--ink-soft)", marginBottom: 8 }}>
+                {isListening
+                  ? (lang === "hi" ? "सुन रहा हूं... बोलिए" : "Listening... speak now")
+                  : (lang === "hi" ? "माइक पर टैप करें और बोलें" : "Tap the mic and speak")}
+              </p>
+              <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", fontStyle: "italic" }}>
+                {lang === "hi"
+                  ? 'जैसे: "आज मैंने 500 रुपये की बिक्री की" या "100 रुपये ट्रांसपोर्ट में खर्च किए"'
+                  : 'Example: "I sold samosas for 500 rupees" or "Spent 100 on transport"'}
+              </p>
+            </div>
+
+            {/* Voice transcription */}
+            {voiceText && (
+              <div style={{
+                padding: 16,
+                background: "var(--sand)",
+                borderRadius: "var(--radius-sm)",
+                marginBottom: 16,
+              }}>
+                <div style={{ fontSize: ".75rem", color: "var(--ink-soft)", marginBottom: 6 }}>
+                  {lang === "hi" ? "आपने कहा:" : "You said:"}
+                </div>
+                <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)" }}>
+                  "{voiceText}"
+                </div>
+              </div>
+            )}
+
+            {/* Parsed result */}
+            {voiceParsed && (
+              <div style={{
+                padding: 16,
+                background: voiceParsed.type === "income" ? "#EAF7EE" : "#FBEAEA",
+                borderRadius: "var(--radius-sm)",
+                marginBottom: 16,
+              }}>
+                <div style={{ fontSize: ".75rem", color: "var(--ink-soft)", marginBottom: 10 }}>
+                  {lang === "hi" ? "पहचाना गया:" : "Detected:"}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{
+                      display: "inline-block",
+                      padding: "4px 10px",
+                      borderRadius: "var(--radius-full)",
+                      background: voiceParsed.type === "income" ? "var(--leaf)" : "#DC2626",
+                      color: "#fff",
+                      fontSize: ".75rem",
+                      fontWeight: 700,
+                      marginBottom: 6,
+                    }}>
+                      {voiceParsed.type === "income"
+                        ? (lang === "hi" ? "आमदनी" : "Income")
+                        : (lang === "hi" ? "खर्च" : "Expense")}
+                    </div>
+                    <div style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>
+                      {voiceParsed.category}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: "1.5rem",
+                    fontWeight: 800,
+                    color: voiceParsed.type === "income" ? "var(--leaf)" : "#DC2626",
+                  }}>
+                    {voiceParsed.type === "income" ? "+" : "-"}₹{voiceParsed.amount.toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
+                onClick={() => { stopVoiceInput(); setShowVoiceModal(false); }}
+              >
+                {lang === "hi" ? "रद्द करें" : "Cancel"}
+              </button>
+              {voiceParsed && (
+                <button
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
+                  onClick={confirmVoiceTransaction}
+                >
+                  {lang === "hi" ? "जोड़ें" : "Add Entry"}
+                </button>
+              )}
+              {!voiceParsed && !isListening && voiceText && (
+                <button
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
+                  onClick={startVoiceInput}
+                >
+                  {lang === "hi" ? "फिर से बोलें" : "Try Again"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      `}</style>
     </>
   );
 }

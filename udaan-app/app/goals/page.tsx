@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, addNotification } from "@/lib/auth";
+import AppNav from "@/components/AppNav";
 
 type Goal = {
   id: string;
@@ -111,18 +112,7 @@ export default function GoalsPage() {
 
   return (
     <>
-      <nav className="app-nav">
-        <div className="brand" onClick={() => router.push("/dashboard")}>
-          <div className="kite" />
-          <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
-        </div>
-        <div className="nav-links">
-          {[{ label: "Dashboard", path: "/dashboard" }, { label: "My Coach", path: "/coach" }, { label: "Community", path: "/community" }, { label: "Goals", path: "/goals" }, { label: "Piggy Bank", path: "/piggy-bank" }].map((l) => (
-            <button key={l.path} className={`nav-link${typeof window !== "undefined" && window.location.pathname === l.path ? " active" : ""}`} onClick={() => router.push(l.path)}>{l.label}</button>
-          ))}
-        </div>
-        <div className="nav-right"><button className="user-chip" onClick={() => router.push("/dashboard")}>← Back</button></div>
-      </nav>
+      <AppNav />
 
       <div className="page-layout">
         <div className="page-header">

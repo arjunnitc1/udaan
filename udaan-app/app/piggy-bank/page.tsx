@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, addNotification } from "@/lib/auth";
+import AppNav from "@/components/AppNav";
 
 type SavingEntry = {
   id: string;
@@ -39,7 +40,7 @@ const AFFIRMATIONS = [
   "Your piggy bank doesn't judge. It just grows. 🌱",
   "Small amounts saved daily become big amounts over time. Keep going!",
   "Your daughter will ask how you did it. 'One rupee at a time,' you'll say. 💪",
-  "The women who built wealth started exactly where you are — saving small, dreaming big.",
+  "The women who built wealth started exactly where you are, saving small, dreaming big.",
 ];
 
 export default function PiggyBankPage() {
@@ -140,18 +141,7 @@ export default function PiggyBankPage() {
 
   return (
     <>
-      <nav className="app-nav">
-        <div className="brand" onClick={() => router.push("/dashboard")}>
-          <div className="kite" />
-          <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
-        </div>
-        <div className="nav-links">
-          {[{ label: "Dashboard", path: "/dashboard" }, { label: "My Coach", path: "/coach" }, { label: "Community", path: "/community" }, { label: "Goals", path: "/goals" }, { label: "Piggy Bank", path: "/piggy-bank" }].map((l) => (
-            <button key={l.path} className={`nav-link${typeof window !== "undefined" && window.location.pathname === l.path ? " active" : ""}`} onClick={() => router.push(l.path)}>{l.label}</button>
-          ))}
-        </div>
-        <div className="nav-right"><button className="user-chip" onClick={() => router.push("/dashboard")}>← Back</button></div>
-      </nav>
+      <AppNav />
 
       <div className="page-layout">
         <div className="page-header">
@@ -244,7 +234,7 @@ export default function PiggyBankPage() {
         <div className="dash-card" style={{ marginTop: 20, background: "linear-gradient(135deg, var(--ink), #2A3160)", border: "none" }}>
           <div className="dash-card-title" style={{ color: "var(--marigold)" }}>💡 Smart Saving Tips</div>
           {[
-            "Open a Jan Dhan zero-balance account this week — free, and your money is safe.",
+            "Open a Jan Dhan zero-balance account this week. It's free, and your money is safe.",
             "Save first, spend later. Even ₹10/day = ₹3,650/year.",
             "Join a local SHG (Self-Help Group) for group savings and easy credit.",
             "Keep a separate savings jar for unexpected expenses (medical, repairs).",

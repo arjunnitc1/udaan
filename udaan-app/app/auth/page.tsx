@@ -103,7 +103,7 @@ export default function AuthPage() {
         </h2>
         <p className="sub">
           {mode === "phone"
-            ? "उड़ान — Your skill. Your business. Your flight.\nEnter your mobile number to get started."
+            ? "उड़ान: Your skill. Your business. Your flight.\nEnter your mobile number to get started."
             : mode === "otp"
             ? `We sent a 6-digit OTP to +91 ${phone}`
             : "What do you want to be called?\nहम आपको क्या बुलाएँ?"}

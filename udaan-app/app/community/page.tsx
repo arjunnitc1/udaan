@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import AppNav from "@/components/AppNav";
 import heroesData from "@/data/community-heroes.json";
 
 type Hero = typeof heroesData.heroes[0];
@@ -24,34 +25,13 @@ export default function CommunityPage() {
 
   return (
     <>
-      <nav className="app-nav">
-        <div className="brand" onClick={() => router.push("/dashboard")}>
-          <div className="kite" />
-          <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
-        </div>
-        <div className="nav-links">
-          {[
-            { label: "Dashboard", path: "/dashboard" },
-            { label: "My Coach", path: "/coach" },
-            { label: "Community", path: "/community" },
-            { label: "Goals", path: "/goals" },
-            { label: "Piggy Bank", path: "/piggy-bank" },
-          ].map((l) => (
-            <button key={l.path} className={`nav-link${typeof window !== "undefined" && window.location.pathname === l.path ? " active" : ""}`} onClick={() => router.push(l.path)}>
-              {l.label}
-            </button>
-          ))}
-        </div>
-        <div className="nav-right">
-          <button className="user-chip" onClick={() => router.push("/dashboard")}>← Back</button>
-        </div>
-      </nav>
+      <AppNav />
 
       <div className="page-layout">
         <div className="page-header">
           <div className="eyebrow">Community Heroes</div>
           <h2 className="serif">Women who flew first 🏆</h2>
-          <p>Real women who used Udaan to launch their businesses. Get inspired, or reach out directly — they&apos;ve been where you are.</p>
+          <p>Real women who used Udaan to launch their businesses. Get inspired, or reach out directly. They&apos;ve been where you are.</p>
         </div>
 
         {/* Stats */}

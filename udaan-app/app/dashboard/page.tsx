@@ -10,6 +10,8 @@ import {
   DAILY_NUDGES,
   AppNotification,
 } from "@/lib/auth";
+import { useLang, COMMON_UI } from "@/lib/language";
+import AppNav from "@/components/AppNav";
 import heroesData from "@/data/community-heroes.json";
 
 const TIPS = [
@@ -26,38 +28,6 @@ function timeAgo(ts: number) {
   if (diff < 3600000) return Math.floor(diff / 60000) + "m ago";
   if (diff < 86400000) return Math.floor(diff / 3600000) + "h ago";
   return Math.floor(diff / 86400000) + "d ago";
-}
-
-function AppNav({ onNotifClick, unreadCount }: { onNotifClick: () => void; unreadCount: number }) {
-  const router = useRouter();
-  const { logout } = useAuth();
-  return (
-    <nav className="app-nav">
-      <div className="brand" onClick={() => router.push("/dashboard")}>
-        <div className="kite" />
-        <h1 className="serif">Udaan<span className="hi">उड़ान</span></h1>
-      </div>
-      <div className="nav-links">
-        {[
-          { label: "Dashboard", path: "/dashboard" },
-          { label: "My Coach", path: "/coach" },
-          { label: "Finance", path: "/finance" },
-          { label: "Goals", path: "/goals" },
-          { label: "Piggy Bank", path: "/piggy-bank" },
-        ].map((l) => (
-          <button key={l.path} className={`nav-link${typeof window !== "undefined" && window.location.pathname === l.path ? " active" : ""}`} onClick={() => router.push(l.path)}>
-            {l.label}
-          </button>
-        ))}
-      </div>
-      <div className="nav-right">
-        <button className="notif-btn" onClick={onNotifClick}>
-          🔔{unreadCount > 0 && <span className="notif-badge" />}
-        </button>
-        <button className="user-chip" onClick={logout}>Sign out</button>
-      </div>
-    </nav>
-  );
 }
 
 export default function Dashboard() {
@@ -102,7 +72,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <AppNav onNotifClick={() => setShowNotifs(!showNotifs)} unreadCount={unread} />
+      <AppNav showNotifs onNotifClick={() => setShowNotifs(!showNotifs)} unreadCount={unread} />
 
       <div className="dash-layout">
         {/* Greeting */}
@@ -141,7 +111,7 @@ export default function Dashboard() {
           {/* Coach CTA */}
           <div className="dash-card coach-cta-card">
             <div className="dash-card-title">Your Business Coach</div>
-            <p>Tell Udaan what you&apos;re good at. Get your business plan, pricing, WhatsApp message, and government schemes — all in your language.</p>
+            <p>Tell Udaan what you&apos;re good at. Get your business plan, pricing, WhatsApp message, and government schemes, all in your language.</p>
             <button className="btn btn-primary btn-sm" onClick={() => router.push("/coach")}>
               Start conversation →
             </button>
@@ -179,7 +149,7 @@ export default function Dashboard() {
         <div className="dash-card" style={{ marginTop: 0 }}>
           <div className="dash-card-title">🏆 Community Heroes</div>
           <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", marginBottom: 16 }}>
-            Women who used Udaan to launch real businesses. Get inspired — or reach out to them directly.
+            Women who used Udaan to launch real businesses. Get inspired, or reach out to them directly.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {previewHeroes.map((h) => (

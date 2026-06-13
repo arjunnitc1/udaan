@@ -127,8 +127,8 @@ function seedWelcomeNotification(name?: string) {
   if (existing.length > 0) return;
   const greeting = name ? `Welcome to Udaan, ${name}!` : "Welcome to Udaan!";
   const personalBody = name
-    ? `${name}, you just took the first step of a thousand. The women who changed their lives started exactly here — with one tap. Your journey begins now, didi!`
-    : "You just took the first step of a thousand. The women who changed their lives started exactly here — with one tap. Your journey begins now, didi!";
+    ? `${name}, you just took the first step of a thousand. The women who changed their lives started exactly here, with one tap. Your journey begins now, didi!`
+    : "You just took the first step of a thousand. The women who changed their lives started exactly here, with one tap. Your journey begins now, didi!";
   addNotification({
     type: "welcome",
     emoji: "🦸‍♀️",
@@ -139,7 +139,7 @@ function seedWelcomeNotification(name?: string) {
     type: "motivation",
     emoji: "✨",
     title: "Today's Power Message",
-    body: "Every big business started as someone's side hustle. Your skill is your superpower — Udaan is here to help you turn it into income. Let's fly!",
+    body: "Every big business started as someone's side hustle. Your skill is your superpower. Udaan is here to help you turn it into income. Let's fly!",
   });
 }
 
