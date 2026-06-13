@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import AppNav from "@/components/AppNav";
-import { useLang } from "@/lib/language";
+import { useLang, FINANCE_UI } from "@/lib/language";
 
 type Transaction = {
   id: string;
@@ -95,6 +95,7 @@ export default function FinancePage() {
   const { user, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
   const { lang } = useLang();
+  const t = FINANCE_UI[lang];
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [txnType, setTxnType] = useState<"income" | "expense">("income");
@@ -266,41 +267,41 @@ export default function FinancePage() {
 
       <div className="page-layout">
         <div className="page-header">
-          <div className="eyebrow">FINANCIAL MANAGEMENT</div>
-          <h2 className="serif">Track Your Money, {displayName}! 💰</h2>
-          <p>Keep track of every rupee: what comes in and what goes out.</p>
+          <div className="eyebrow">{t.eyebrow}</div>
+          <h2 className="serif">{t.title}, {displayName}! 💰</h2>
+          <p>{t.subtitle}</p>
         </div>
 
         {/* Stats cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
           <div style={{ background: "#EAF7EE", borderRadius: "var(--radius)", padding: 16, textAlign: "center" }}>
-            <div style={{ fontSize: ".75rem", color: "var(--leaf)", fontWeight: 700, marginBottom: 4 }}>TOTAL INCOME</div>
+            <div style={{ fontSize: ".75rem", color: "var(--leaf)", fontWeight: 700, marginBottom: 4 }}>{t.totalIncome}</div>
             <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--leaf)" }}>₹{totalIncome.toLocaleString("en-IN")}</div>
           </div>
           <div style={{ background: "#FBEAEA", borderRadius: "var(--radius)", padding: 16, textAlign: "center" }}>
-            <div style={{ fontSize: ".75rem", color: "#8A2B2B", fontWeight: 700, marginBottom: 4 }}>TOTAL EXPENSE</div>
+            <div style={{ fontSize: ".75rem", color: "#8A2B2B", fontWeight: 700, marginBottom: 4 }}>{t.totalExpense}</div>
             <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#8A2B2B" }}>₹{totalExpense.toLocaleString("en-IN")}</div>
           </div>
           <div style={{ background: netProfit >= 0 ? "linear-gradient(135deg, var(--marigold), var(--rose))" : "#FEF3C7", borderRadius: "var(--radius)", padding: 16, textAlign: "center" }}>
-            <div style={{ fontSize: ".75rem", color: "var(--ink)", fontWeight: 700, marginBottom: 4 }}>NET PROFIT</div>
+            <div style={{ fontSize: ".75rem", color: "var(--ink)", fontWeight: 700, marginBottom: 4 }}>{t.netProfit}</div>
             <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--ink)" }}>₹{netProfit.toLocaleString("en-IN")}</div>
           </div>
         </div>
 
         {/* This month's summary */}
         <div className="dash-card" style={{ marginBottom: 20, background: "linear-gradient(135deg, var(--ink) 0%, #2A3160 100%)", color: "var(--paper)" }}>
-          <div style={{ fontSize: ".75rem", color: "var(--marigold)", fontWeight: 700, marginBottom: 12 }}>THIS MONTH</div>
+          <div style={{ fontSize: ".75rem", color: "var(--marigold)", fontWeight: 700, marginBottom: 12 }}>{t.thisMonth}</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>Income</div>
+              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>{t.income}</div>
               <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#4ADE80" }}>+₹{monthlyIncome.toLocaleString("en-IN")}</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>Expense</div>
+              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>{t.expense}</div>
               <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#F87171" }}>-₹{monthlyExpense.toLocaleString("en-IN")}</div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>Net</div>
+              <div style={{ fontSize: ".8rem", opacity: 0.7 }}>{t.net}</div>
               <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--marigold)" }}>₹{(monthlyIncome - monthlyExpense).toLocaleString("en-IN")}</div>
             </div>
           </div>
@@ -313,14 +314,14 @@ export default function FinancePage() {
             style={{ flex: 1 }}
             onClick={() => { setTxnType("income"); setShowAddModal(true); }}
           >
-            + Add Income
+            {t.addIncome}
           </button>
           <button
             className="btn btn-ghost"
             style={{ flex: 1 }}
             onClick={() => { setTxnType("expense"); setShowAddModal(true); }}
           >
-            + Add Expense
+            {t.addExpense}
           </button>
         </div>
 
@@ -345,15 +346,15 @@ export default function FinancePage() {
           }}
         >
           <span style={{ fontSize: "1.2rem" }}>🎤</span>
-          {lang === "hi" ? "बोलकर एंट्री करें" : lang === "bn" ? "কথা বলে এন্ট্রি করুন" : lang === "ml" ? "സംസാരിച്ച് എൻട്രി ചെയ്യുക" : "Speak to Add Entry"}
+          {t.speakToAdd}
         </button>
 
         {/* Filter tabs */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {[
-            { key: "all", label: "All" },
-            { key: "income", label: "Income" },
-            { key: "expense", label: "Expenses" },
+            { key: "all", label: t.all },
+            { key: "income", label: t.income },
+            { key: "expense", label: t.expenses },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -379,7 +380,7 @@ export default function FinancePage() {
           {filteredTxns.length === 0 ? (
             <div style={{ textAlign: "center", padding: 40, color: "var(--ink-soft)" }}>
               <div style={{ fontSize: "2rem", marginBottom: 8 }}>📊</div>
-              <p>No transactions yet. Start by adding your first income or expense!</p>
+              <p>{t.noTransactions}</p>
             </div>
           ) : (
             filteredTxns.map((txn) => (
@@ -414,7 +415,7 @@ export default function FinancePage() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: ".9rem" }}>{txn.category}</div>
                     <div style={{ fontSize: ".78rem", color: "var(--ink-soft)" }}>
-                      {txn.description || "No description"} · {formatDate(txn.date)}
+                      {txn.description || t.noDescription} · {formatDate(txn.date)}
                     </div>
                   </div>
                 </div>
@@ -448,9 +449,9 @@ export default function FinancePage() {
 
         {/* Tips card */}
         <div className="dash-card" style={{ marginTop: 24, background: "var(--sand)" }}>
-          <div style={{ fontSize: ".75rem", color: "var(--marigold-deep)", fontWeight: 700, marginBottom: 8 }}>💡 FINANCIAL TIP</div>
+          <div style={{ fontSize: ".75rem", color: "var(--marigold-deep)", fontWeight: 700, marginBottom: 8 }}>{t.financialTip}</div>
           <p style={{ fontSize: ".9rem", color: "var(--ink)", lineHeight: 1.6 }}>
-            Write down every income and expense daily. Small leaks sink big ships. Tracking helps you see where your money goes and find ways to save more!
+            {t.tipText}
           </p>
         </div>
       </div>
@@ -461,11 +462,11 @@ export default function FinancePage() {
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
             <h3 className="modal-title">
-              {txnType === "income" ? "💰 Add Income" : "💸 Add Expense"}
+              {txnType === "income" ? `💰 ${t.addIncome}` : `💸 ${t.addExpense}`}
             </h3>
 
             <div className="form-group">
-              <label className="form-label">Amount (₹)</label>
+              <label className="form-label">{t.amount}</label>
               <input
                 type="number"
                 className="form-input"
@@ -477,7 +478,7 @@ export default function FinancePage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Category</label>
+              <label className="form-label">{t.category}</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {(txnType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
                   <button
@@ -502,11 +503,11 @@ export default function FinancePage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Description (optional)</label>
+              <label className="form-label">{t.description}</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g., Sold 5 samosas"
+                placeholder={t.descPlaceholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -514,7 +515,7 @@ export default function FinancePage() {
 
             {/* Bill Image Capture */}
             <div className="form-group">
-              <label className="form-label">Attach Bill/Receipt (optional)</label>
+              <label className="form-label">{t.attachBill}</label>
               <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                 <label
                   style={{
@@ -530,7 +531,7 @@ export default function FinancePage() {
                   }}
                 >
                   <span>📷</span>
-                  <span>{billImage ? "Change Photo" : "Take Photo"}</span>
+                  <span>{billImage ? t.changePhoto : t.takePhoto}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -540,7 +541,7 @@ export default function FinancePage() {
                   />
                 </label>
                 {isProcessingImage && (
-                  <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>Processing...</span>
+                  <span style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>{t.processing}</span>
                 )}
               </div>
               {billImage && (
@@ -585,7 +586,7 @@ export default function FinancePage() {
               disabled={!amount || !category}
               style={{ marginTop: 16 }}
             >
-              {txnType === "income" ? "Add Income" : "Add Expense"}
+              {txnType === "income" ? t.addIncome : t.addExpense}
             </button>
           </div>
         </div>
@@ -597,7 +598,7 @@ export default function FinancePage() {
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
             <h3 className="modal-title">
-              🎤 {lang === "hi" ? "बोलकर एंट्री करें" : "Voice Entry"}
+              🎤 {t.voiceEntry}
             </h3>
 
             {/* Voice animation */}
@@ -626,14 +627,10 @@ export default function FinancePage() {
                 <span style={{ fontSize: "2.5rem" }}>{isListening ? "⏹️" : "🎤"}</span>
               </div>
               <p style={{ fontSize: ".9rem", color: "var(--ink-soft)", marginBottom: 8 }}>
-                {isListening
-                  ? (lang === "hi" ? "सुन रहा हूं... बोलिए" : "Listening... speak now")
-                  : (lang === "hi" ? "माइक पर टैप करें और बोलें" : "Tap the mic and speak")}
+                {isListening ? t.listening : t.tapToSpeak}
               </p>
               <p style={{ fontSize: ".78rem", color: "var(--ink-soft)", fontStyle: "italic" }}>
-                {lang === "hi"
-                  ? 'जैसे: "आज मैंने 500 रुपये की बिक्री की" या "100 रुपये ट्रांसपोर्ट में खर्च किए"'
-                  : 'Example: "I sold samosas for 500 rupees" or "Spent 100 on transport"'}
+                {t.voiceExample}
               </p>
             </div>
 
@@ -646,7 +643,7 @@ export default function FinancePage() {
                 marginBottom: 16,
               }}>
                 <div style={{ fontSize: ".75rem", color: "var(--ink-soft)", marginBottom: 6 }}>
-                  {lang === "hi" ? "आपने कहा:" : "You said:"}
+                  {t.youSaid}
                 </div>
                 <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--ink)" }}>
                   "{voiceText}"
@@ -663,7 +660,7 @@ export default function FinancePage() {
                 marginBottom: 16,
               }}>
                 <div style={{ fontSize: ".75rem", color: "var(--ink-soft)", marginBottom: 10 }}>
-                  {lang === "hi" ? "पहचाना गया:" : "Detected:"}
+                  {t.detected}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -677,9 +674,7 @@ export default function FinancePage() {
                       fontWeight: 700,
                       marginBottom: 6,
                     }}>
-                      {voiceParsed.type === "income"
-                        ? (lang === "hi" ? "आमदनी" : "Income")
-                        : (lang === "hi" ? "खर्च" : "Expense")}
+                      {voiceParsed.type === "income" ? t.income : t.expense}
                     </div>
                     <div style={{ fontSize: ".85rem", color: "var(--ink-soft)" }}>
                       {voiceParsed.category}
@@ -703,7 +698,7 @@ export default function FinancePage() {
                 style={{ flex: 1 }}
                 onClick={() => { stopVoiceInput(); setShowVoiceModal(false); }}
               >
-                {lang === "hi" ? "रद्द करें" : "Cancel"}
+                {t.cancel}
               </button>
               {voiceParsed && (
                 <button
@@ -711,7 +706,7 @@ export default function FinancePage() {
                   style={{ flex: 1 }}
                   onClick={confirmVoiceTransaction}
                 >
-                  {lang === "hi" ? "जोड़ें" : "Add Entry"}
+                  {t.addEntry}
                 </button>
               )}
               {!voiceParsed && !isListening && voiceText && (
@@ -720,7 +715,7 @@ export default function FinancePage() {
                   style={{ flex: 1 }}
                   onClick={startVoiceInput}
                 >
-                  {lang === "hi" ? "फिर से बोलें" : "Try Again"}
+                  {t.tryAgain}
                 </button>
               )}
             </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, addNotification } from "@/lib/auth";
+import { useLang, PIGGYBANK_UI } from "@/lib/language";
 import AppNav from "@/components/AppNav";
 
 type SavingEntry = {
@@ -46,6 +47,8 @@ const AFFIRMATIONS = [
 export default function PiggyBankPage() {
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const { lang } = useLang();
+  const t = PIGGYBANK_UI[lang];
   const [jars, setJars] = useState<SavingJar[]>([]);
   const [showAddJar, setShowAddJar] = useState(false);
   const [showAddEntry, setShowAddEntry] = useState<string | null>(null);
@@ -145,15 +148,15 @@ export default function PiggyBankPage() {
 
       <div className="page-layout">
         <div className="page-header">
-          <div className="eyebrow">Piggy Bank</div>
-          <h2 className="serif">Your savings, growing 🐷</h2>
-          <p>Separate jars for separate dreams. Watch your money grow.</p>
+          <div className="eyebrow">{t.eyebrow}</div>
+          <h2 className="serif">{t.title}</h2>
+          <p>{t.subtitle}</p>
         </div>
 
         {/* Grand total hero */}
         <div className="piggy-hero">
           <div style={{ fontSize: "3rem", marginBottom: 8 }}>🐷</div>
-          <div className="piggy-label">Total saved across all jars</div>
+          <div className="piggy-label">{t.totalSavedAcross}</div>
           <div className="piggy-total">₹{grandTotal.toLocaleString("en-IN")}</div>
           <div className="piggy-sub">{affirmation}</div>
         </div>
@@ -171,14 +174,14 @@ export default function PiggyBankPage() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "1.02rem" }}>{jar.name}</div>
                     <div style={{ fontSize: ".8rem", color: "var(--ink-soft)" }}>
-                      {jar.entries.length} saving{jar.entries.length !== 1 ? "s" : ""}
+                      {jar.entries.length} {t.savings}
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontWeight: 800, fontSize: "1.3rem", color: "var(--leaf)" }}>₹{total.toLocaleString("en-IN")}</div>
                   {jar.target > 0 && (
-                    <div style={{ fontSize: ".72rem", color: "var(--ink-soft)" }}>of ₹{jar.target.toLocaleString("en-IN")}</div>
+                    <div style={{ fontSize: ".72rem", color: "var(--ink-soft)" }}>{t.of} ₹{jar.target.toLocaleString("en-IN")}</div>
                   )}
                 </div>
               </div>
@@ -187,17 +190,17 @@ export default function PiggyBankPage() {
                 <div className="progress-wrap" style={{ marginBottom: 12 }}>
                   <div className="progress-label">
                     <span>{Math.round(pct)}%</span>
-                    {pct < 100 && <span>₹{(jar.target - total).toLocaleString("en-IN")} to go</span>}
-                    {pct >= 100 && <span style={{ color: "var(--leaf)", fontWeight: 700 }}>🎉 Goal reached!</span>}
+                    {pct < 100 && <span>₹{(jar.target - total).toLocaleString("en-IN")} {t.toGo}</span>}
+                    {pct >= 100 && <span style={{ color: "var(--leaf)", fontWeight: 700 }}>{t.goalReached}</span>}
                   </div>
                   <div className="progress-bar"><div className="progress-fill green" style={{ width: `${pct}%` }} /></div>
                 </div>
               )}
 
               <div style={{ display: "flex", gap: 8, marginBottom: isExpanded ? 14 : 0 }}>
-                <button className="btn btn-primary btn-sm" onClick={() => setShowAddEntry(jar.id)}>+ Save money</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowAddEntry(jar.id)}>{t.saveMoney}</button>
                 <button className="btn btn-ghost btn-sm" onClick={() => setExpandedJar(isExpanded ? null : jar.id)}>
-                  {isExpanded ? "Hide history ↑" : "History ↓"}
+                  {isExpanded ? t.hideHistory : t.history}
                 </button>
                 {jar.id !== "default" && (
                   <button className="btn btn-ghost btn-sm" style={{ color: "var(--rose)", borderColor: "var(--rose)" }} onClick={() => deleteJar(jar.id)}>Delete</button>
@@ -207,7 +210,7 @@ export default function PiggyBankPage() {
               {isExpanded && (
                 <div>
                   {jar.entries.length === 0 && (
-                    <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", textAlign: "center", padding: "12px 0" }}>No savings yet. Add your first! 🌱</p>
+                    <p style={{ fontSize: ".85rem", color: "var(--ink-soft)", textAlign: "center", padding: "12px 0" }}>{t.noSavingsYet}</p>
                   )}
                   {jar.entries.map((e) => (
                     <div key={e.id} className="saving-entry">
@@ -227,18 +230,13 @@ export default function PiggyBankPage() {
         {/* Add jar */}
         <div className="add-goal-card" onClick={() => setShowAddJar(true)}>
           <div className="icon">🏺</div>
-          <p>Create a new savings jar</p>
+          <p>{t.createNewJar}</p>
         </div>
 
         {/* Tips */}
         <div className="dash-card" style={{ marginTop: 20, background: "linear-gradient(135deg, var(--ink), #2A3160)", border: "none" }}>
-          <div className="dash-card-title" style={{ color: "var(--marigold)" }}>💡 Smart Saving Tips</div>
-          {[
-            "Open a Jan Dhan zero-balance account this week. It's free, and your money is safe.",
-            "Save first, spend later. Even ₹10/day = ₹3,650/year.",
-            "Join a local SHG (Self-Help Group) for group savings and easy credit.",
-            "Keep a separate savings jar for unexpected expenses (medical, repairs).",
-          ].map((tip, i) => (
+          <div className="dash-card-title" style={{ color: "var(--marigold)" }}>{t.smartSavingTips}</div>
+          {t.tips.map((tip, i) => (
             <div key={i} style={{ padding: "8px 0", borderBottom: i < 3 ? "1px dashed rgba(255,255,255,.12)" : "none", fontSize: ".88rem", color: "rgba(255,255,255,.78)", lineHeight: 1.55 }}>
               {tip}
             </div>
@@ -251,9 +249,9 @@ export default function PiggyBankPage() {
         <div className="modal-overlay" onClick={() => setShowAddJar(false)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div className="modal-title">Create a savings jar 🏺</div>
+            <div className="modal-title">{t.createSavingsJar}</div>
             <div className="form-group">
-              <label className="form-label">Pick an emoji</label>
+              <label className="form-label">{t.pickEmoji}</label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {JAR_EMOJIS.map((e) => (
                   <button key={e} onClick={() => setJarForm(f => ({ ...f, emoji: e }))}
@@ -264,14 +262,14 @@ export default function PiggyBankPage() {
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Jar name</label>
-              <input className="form-input" placeholder="e.g. Family medical fund" value={jarForm.name} onChange={(e) => setJarForm(f => ({ ...f, name: e.target.value }))} />
+              <label className="form-label">{t.jarName}</label>
+              <input className="form-input" placeholder={t.jarNamePlaceholder} value={jarForm.name} onChange={(e) => setJarForm(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Target amount ₹ (optional)</label>
+              <label className="form-label">{t.targetAmountOptional}</label>
               <input className="form-input" type="number" placeholder="e.g. 20000" value={jarForm.target} onChange={(e) => setJarForm(f => ({ ...f, target: e.target.value }))} />
             </div>
-            <button className="btn btn-primary full-width" onClick={createJar}>Create jar</button>
+            <button className="btn btn-primary full-width" onClick={createJar}>{t.createJar}</button>
           </div>
         </div>
       )}
@@ -281,18 +279,18 @@ export default function PiggyBankPage() {
         <div className="modal-overlay" onClick={() => setShowAddEntry(null)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div className="modal-title">Add to {jars.find(j => j.id === showAddEntry)?.name} 💰</div>
+            <div className="modal-title">{t.addTo} {jars.find(j => j.id === showAddEntry)?.name} 💰</div>
             <div className="form-group">
-              <label className="form-label">Amount (₹)</label>
+              <label className="form-label">{t.amountLabel}</label>
               <input className="form-input" type="number" autoFocus placeholder="e.g. 500" value={entryForm.amount}
                 onChange={(e) => setEntryForm(f => ({ ...f, amount: e.target.value }))}
                 onKeyDown={(e) => e.key === "Enter" && addEntry(showAddEntry)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Note (optional)</label>
-              <input className="form-input" placeholder="e.g. Tiffin earnings" value={entryForm.note} onChange={(e) => setEntryForm(f => ({ ...f, note: e.target.value }))} />
+              <label className="form-label">{t.noteOptional}</label>
+              <input className="form-input" placeholder={t.notePlaceholder} value={entryForm.note} onChange={(e) => setEntryForm(f => ({ ...f, note: e.target.value }))} />
             </div>
-            <button className="btn btn-primary full-width" onClick={() => addEntry(showAddEntry)}>Save money</button>
+            <button className="btn btn-primary full-width" onClick={() => addEntry(showAddEntry)}>{t.saveMoney2}</button>
           </div>
         </div>
       )}

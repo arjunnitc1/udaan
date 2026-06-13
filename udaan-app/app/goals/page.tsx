@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, addNotification } from "@/lib/auth";
+import { useLang, GOALS_UI } from "@/lib/language";
 import AppNav from "@/components/AppNav";
 
 type Goal = {
@@ -29,6 +30,8 @@ function saveGoals(goals: Goal[]) {
 export default function GoalsPage() {
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const { lang } = useLang();
+  const t = GOALS_UI[lang];
   const [goals, setGoals] = useState<Goal[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showContrib, setShowContrib] = useState<string | null>(null);
@@ -116,9 +119,9 @@ export default function GoalsPage() {
 
       <div className="page-layout">
         <div className="page-header">
-          <div className="eyebrow">Goals Tracker</div>
-          <h2 className="serif">Your dreams, made real 🎯</h2>
-          <p>Set a goal, add your earnings, watch your dream get closer every day.</p>
+          <div className="eyebrow">{t.eyebrow}</div>
+          <h2 className="serif">{t.title}</h2>
+          <p>{t.subtitle}</p>
         </div>
 
         {/* Summary */}
@@ -126,17 +129,17 @@ export default function GoalsPage() {
           <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
             <div className="dash-card" style={{ flex: 1, minWidth: 120, textAlign: "center" }}>
               <div style={{ fontSize: "1.8rem", fontWeight: 800 }}>{active.length}</div>
-              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>Active goals</div>
+              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>{t.activeGoals}</div>
             </div>
             <div className="dash-card" style={{ flex: 1, minWidth: 120, textAlign: "center" }}>
               <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--leaf)" }}>{done.length}</div>
-              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>Achieved 🏆</div>
+              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>{t.achieved}</div>
             </div>
             <div className="dash-card" style={{ flex: 1, minWidth: 120, textAlign: "center" }}>
               <div style={{ fontSize: "1.8rem", fontWeight: 800 }}>
                 ₹{goals.reduce((s, g) => s + g.currentAmount, 0).toLocaleString("en-IN")}
               </div>
-              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>Total saved</div>
+              <div style={{ fontSize: ".75rem", color: "var(--ink-soft)" }}>{t.totalSaved}</div>
             </div>
           </div>
         )}
@@ -155,22 +158,22 @@ export default function GoalsPage() {
                     ₹{g.currentAmount.toLocaleString("en-IN")} of ₹{g.targetAmount.toLocaleString("en-IN")}
                   </div>
                 </div>
-                <span className="goal-badge active">Active</span>
+                <span className="goal-badge active">{t.active}</span>
               </div>
               <div className="progress-wrap">
                 <div className="progress-label">
-                  <span>{Math.round(pct)}% complete</span>
-                  <span>₹{remaining.toLocaleString("en-IN")} to go</span>
+                  <span>{Math.round(pct)}% {t.complete}</span>
+                  <span>₹{remaining.toLocaleString("en-IN")} {t.toGo}</span>
                 </div>
                 <div className="progress-bar"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
               </div>
               <div className="goal-meta">
-                {g.deadline && <span>📅 Target: {new Date(g.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
-                {pct >= 75 && <span style={{ color: "var(--leaf)", fontWeight: 700 }}>🔥 Almost there!</span>}
+                {g.deadline && <span>📅 {t.target}: {new Date(g.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                {pct >= 75 && <span style={{ color: "var(--leaf)", fontWeight: 700 }}>{t.almostThere}</span>}
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                <button className="btn btn-primary btn-sm" onClick={() => setShowContrib(g.id)}>+ Add savings</button>
-                <button className="btn btn-ghost btn-sm" style={{ color: "var(--rose)", borderColor: "var(--rose)" }} onClick={() => deleteGoal(g.id)}>Delete</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowContrib(g.id)}>{t.addSavings}</button>
+                <button className="btn btn-ghost btn-sm" style={{ color: "var(--rose)", borderColor: "var(--rose)" }} onClick={() => deleteGoal(g.id)}>{t.delete}</button>
               </div>
             </div>
           );
@@ -185,7 +188,7 @@ export default function GoalsPage() {
                 <div className="goal-title">{g.title}</div>
                 <div className="goal-amount" style={{ color: "var(--leaf)" }}>✓ ₹{g.targetAmount.toLocaleString("en-IN")} achieved!</div>
               </div>
-              <span className="goal-badge done">Done 🏆</span>
+              <span className="goal-badge done">{t.done}</span>
             </div>
             <div className="progress-bar"><div className="progress-fill green" style={{ width: "100%" }} /></div>
           </div>
@@ -194,7 +197,7 @@ export default function GoalsPage() {
         {/* Add goal button */}
         <div className="add-goal-card" onClick={() => setShowAdd(true)}>
           <div className="icon">+</div>
-          <p>Add a new goal</p>
+          <p>{t.addNewGoal}</p>
         </div>
       </div>
 
@@ -203,10 +206,10 @@ export default function GoalsPage() {
         <div className="modal-overlay" onClick={() => setShowAdd(false)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div className="modal-title">Set a new goal 🎯</div>
+            <div className="modal-title">{t.setNewGoal}</div>
             {formErr && <div className="auth-error">{formErr}</div>}
             <div className="form-group">
-              <label className="form-label">Pick an emoji</label>
+              <label className="form-label">{t.pickEmoji}</label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {EMOJIS.map((e) => (
                   <button key={e} onClick={() => setForm(f => ({ ...f, emoji: e }))}
@@ -217,18 +220,18 @@ export default function GoalsPage() {
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Goal name</label>
-              <input className="form-input" placeholder="e.g. Buy sewing machine for business" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} />
+              <label className="form-label">{t.goalName}</label>
+              <input className="form-input" placeholder={t.goalNamePlaceholder} value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Target amount (₹)</label>
-              <input className="form-input" type="number" placeholder="e.g. 50000" value={form.targetAmount} onChange={(e) => setForm(f => ({ ...f, targetAmount: e.target.value }))} />
+              <label className="form-label">{t.targetAmount}</label>
+              <input className="form-input" type="number" placeholder={t.targetAmountPlaceholder} value={form.targetAmount} onChange={(e) => setForm(f => ({ ...f, targetAmount: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label className="form-label">Target date (optional)</label>
+              <label className="form-label">{t.targetDate}</label>
               <input className="form-input" type="date" value={form.deadline} onChange={(e) => setForm(f => ({ ...f, deadline: e.target.value }))} />
             </div>
-            <button className="btn btn-primary full-width" onClick={addGoal}>Create goal</button>
+            <button className="btn btn-primary full-width" onClick={addGoal}>{t.createGoal}</button>
           </div>
         </div>
       )}
@@ -238,13 +241,13 @@ export default function GoalsPage() {
         <div className="modal-overlay" onClick={() => setShowContrib(null)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <div className="modal-title">Add to your savings 💰</div>
+            <div className="modal-title">{t.addToSavings}</div>
             <div className="form-group">
-              <label className="form-label">Amount saved (₹)</label>
-              <input className="form-input" type="number" autoFocus placeholder="e.g. 500" value={contribAmount} onChange={(e) => setContribAmount(e.target.value)}
+              <label className="form-label">{t.amountSaved}</label>
+              <input className="form-input" type="number" autoFocus placeholder={t.amountPlaceholder} value={contribAmount} onChange={(e) => setContribAmount(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addContribution()} />
             </div>
-            <button className="btn btn-primary full-width" onClick={addContribution}>Add savings</button>
+            <button className="btn btn-primary full-width" onClick={addContribution}>{t.addSavings}</button>
           </div>
         </div>
       )}

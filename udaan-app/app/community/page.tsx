@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useLang, COMMUNITY_UI } from "@/lib/language";
 import AppNav from "@/components/AppNav";
 import heroesData from "@/data/community-heroes.json";
 
@@ -11,6 +12,8 @@ type Hero = typeof heroesData.heroes[0];
 export default function CommunityPage() {
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const { lang } = useLang();
+  const t = COMMUNITY_UI[lang];
   const [filter, setFilter] = useState("All");
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -29,18 +32,18 @@ export default function CommunityPage() {
 
       <div className="page-layout">
         <div className="page-header">
-          <div className="eyebrow">Community Heroes</div>
-          <h2 className="serif">Women who flew first 🏆</h2>
-          <p>Real women who used Udaan to launch their businesses. Get inspired, or reach out directly. They&apos;ve been where you are.</p>
+          <div className="eyebrow">{t.eyebrow}</div>
+          <h2 className="serif">{t.title}</h2>
+          <p>{t.subtitle}</p>
         </div>
 
         {/* Stats */}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
           {[
-            { label: "Women helped", value: "10,000+" },
-            { label: "Cities", value: "50+" },
-            { label: "Avg monthly income", value: "₹16,500" },
-            { label: "First order time", value: "~5 days" },
+            { label: t.womenHelped, value: "10,000+" },
+            { label: t.cities, value: "50+" },
+            { label: t.avgMonthlyIncome, value: "₹16,500" },
+            { label: t.firstOrderTime, value: t.fiveDays },
           ].map((s) => (
             <div key={s.label} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", padding: "12px 18px", flex: 1, minWidth: 120, textAlign: "center" }}>
               <div style={{ fontWeight: 800, fontSize: "1.2rem" }}>{s.value}</div>
@@ -77,10 +80,10 @@ export default function CommunityPage() {
                 <div style={{ flex: 1 }}>
                   <div className="hero-name">{hero.name}</div>
                   <div className="hero-loc">📍 {hero.location}</div>
-                  <span className="hero-income">{hero.monthlyIncome}/month</span>
+                  <span className="hero-income">{hero.monthlyIncome}/{t.month}</span>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: ".72rem", color: "var(--ink-soft)", marginBottom: 4 }}>First order in</div>
+                  <div style={{ fontSize: ".72rem", color: "var(--ink-soft)", marginBottom: 4 }}>{t.firstOrderIn}</div>
                   <div style={{ fontWeight: 700, fontSize: ".88rem", color: "var(--rose)" }}>{hero.timeToFirstOrder}</div>
                 </div>
               </div>
@@ -102,18 +105,18 @@ export default function CommunityPage() {
                 onClick={() => setExpanded(expanded === hero.id ? null : hero.id)}
                 style={{ background: "none", border: "none", color: "var(--indigo)", fontSize: ".82rem", fontWeight: 600, cursor: "pointer", padding: 0, fontFamily: "inherit", marginTop: 6, marginBottom: 10 }}
               >
-                {expanded === hero.id ? "Show less ↑" : "Read her story ↓"}
+                {expanded === hero.id ? t.showLess : t.readHerStory}
               </button>
 
               <div className="hero-actions">
                 <a href={`https://wa.me/${hero.whatsapp}?text=Hi%20${encodeURIComponent(hero.name)}!%20I%20found%20you%20on%20Udaan%20and%20would%20love%20to%20connect.`} target="_blank" rel="noreferrer">
                   <button className="wa-btn">
-                    💬 WhatsApp her
+                    💬 {t.whatsappHer}
                   </button>
                 </a>
                 <a href={`https://instagram.com/${hero.instagram.replace("@", "")}`} target="_blank" rel="noreferrer">
                   <button className="ig-btn">
-                    📸 Instagram
+                    📸 {t.instagram}
                   </button>
                 </a>
               </div>
@@ -124,9 +127,9 @@ export default function CommunityPage() {
         {/* CTA to coach */}
         <div style={{ marginTop: 32, background: "linear-gradient(135deg, var(--marigold), var(--rose))", borderRadius: "var(--radius)", padding: "28px 24px", textAlign: "center" }}>
           <div style={{ fontSize: "1.4rem", marginBottom: 8 }}>🪁</div>
-          <h3 className="serif" style={{ marginBottom: 8, fontSize: "1.3rem" }}>Your story could be next</h3>
-          <p style={{ fontSize: ".9rem", color: "rgba(27,33,67,.75)", marginBottom: 20 }}>Every hero above started exactly where you are. Talk to your coach today.</p>
-          <button className="btn btn-dark btn-sm" onClick={() => router.push("/coach")}>Talk to my coach →</button>
+          <h3 className="serif" style={{ marginBottom: 8, fontSize: "1.3rem" }}>{t.yourStoryNext}</h3>
+          <p style={{ fontSize: ".9rem", color: "rgba(27,33,67,.75)", marginBottom: 20 }}>{t.yourStoryDesc}</p>
+          <button className="btn btn-dark btn-sm" onClick={() => router.push("/coach")}>{t.talkToCoach}</button>
         </div>
       </div>
     </>

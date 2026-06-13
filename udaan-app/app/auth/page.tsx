@@ -3,12 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useLang, AUTH_UI } from "@/lib/language";
 
 const DUMMY_OTP = "123456";
 
 export default function AuthPage() {
   const { login, isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
+  const { lang } = useLang();
+  const t = AUTH_UI[lang];
   const [mode, setMode] = useState<"phone" | "otp" | "name">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -33,7 +36,7 @@ export default function AuthPage() {
   function sendOtp() {
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError(t.validMobile);
       return;
     }
     setError("");
@@ -71,7 +74,7 @@ export default function AuthPage() {
         setMode("name");
       } else {
         setVerifying(false);
-        setError("Incorrect OTP. (Hint: use 123456)");
+        setError(t.incorrectOtp);
         setOtp(["", "", "", "", "", ""]);
         otpRefs.current[0]?.focus();
       }
@@ -81,7 +84,7 @@ export default function AuthPage() {
   function completeSignup() {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("Please tell us what you'd like to be called.");
+      setError(t.tellUsName);
       return;
     }
     setError("");
@@ -99,19 +102,19 @@ export default function AuthPage() {
         </div>
 
         <h2 className="serif">
-          {mode === "phone" ? "Welcome to Udaan" : mode === "otp" ? "Verify your number" : "Almost there!"}
+          {mode === "phone" ? t.welcomeToUdaan : mode === "otp" ? t.verifyNumber : t.almostThere}
         </h2>
         <p className="sub">
           {mode === "phone"
-            ? "उड़ान: Your skill. Your business. Your flight.\nEnter your mobile number to get started."
+            ? t.tagline
             : mode === "otp"
-            ? `We sent a 6-digit OTP to +91 ${phone}`
-            : "What do you want to be called?\nहम आपको क्या बुलाएँ?"}
+            ? `${t.sentOtp} +91 ${phone}`
+            : t.whatToCall}
         </p>
 
         {error && <div className="auth-error">{error}</div>}
         {otpSent && mode === "phone" && (
-          <div className="auth-success">OTP sent to +91 {phone}</div>
+          <div className="auth-success">{t.otpSentTo} +91 {phone}</div>
         )}
 
         {mode === "phone" ? (
@@ -120,7 +123,7 @@ export default function AuthPage() {
               <span className="phone-prefix">🇮🇳 +91</span>
               <input
                 type="tel"
-                placeholder="Enter 10-digit mobile number"
+                placeholder={t.enterMobile}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 onKeyDown={(e) => e.key === "Enter" && sendOtp()}
@@ -128,15 +131,15 @@ export default function AuthPage() {
                 maxLength={10}
               />
             </div>
-            <p className="auth-hint">You will receive a one-time password via SMS</p>
+            <p className="auth-hint">{t.willReceiveOtp}</p>
             <button
               className="btn btn-primary full-width"
               onClick={sendOtp}
               disabled={sending}
             >
               {sending ? (
-                <><span className="spinner" style={{ borderColor: "rgba(0,0,0,.15)", borderTopColor: "var(--ink)" }} /> Sending…</>
-              ) : "Send OTP"}
+                <><span className="spinner" style={{ borderColor: "rgba(0,0,0,.15)", borderTopColor: "var(--ink)" }} /> {t.sending}</>
+              ) : t.sendOtp}
             </button>
           </>
         ) : mode === "otp" ? (
@@ -155,22 +158,22 @@ export default function AuthPage() {
                 />
               ))}
             </div>
-            <p className="auth-hint">For demo, enter: 1 2 3 4 5 6</p>
+            <p className="auth-hint">{t.forDemo}</p>
             <button
               className="btn btn-primary full-width"
               onClick={() => verifyOtp()}
               disabled={verifying || otp.join("").length < 6}
             >
               {verifying ? (
-                <><span className="spinner" style={{ borderColor: "rgba(0,0,0,.15)", borderTopColor: "var(--ink)" }} /> Verifying…</>
-              ) : "Verify & Continue"}
+                <><span className="spinner" style={{ borderColor: "rgba(0,0,0,.15)", borderTopColor: "var(--ink)" }} /> {t.verifying}</>
+              ) : t.verifyAndContinue}
             </button>
-            <div className="auth-divider">or</div>
+            <div className="auth-divider">{t.or}</div>
             <button
               className="btn btn-ghost full-width"
               onClick={() => { setMode("phone"); setOtp(["","","","","",""]); setError(""); }}
             >
-              Change number
+              {t.changeNumber}
             </button>
           </>
         ) : (
@@ -179,27 +182,26 @@ export default function AuthPage() {
               <input
                 ref={nameRef}
                 type="text"
-                placeholder="Your name / आपका नाम"
+                placeholder={t.yourName}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && completeSignup()}
                 style={{ paddingLeft: 16 }}
               />
             </div>
-            <p className="auth-hint">This is how your coach will address you</p>
+            <p className="auth-hint">{t.howCoachAddress}</p>
             <button
               className="btn btn-primary full-width"
               onClick={completeSignup}
               disabled={!name.trim()}
             >
-              Let&apos;s Begin! 🪁
+              {t.letsBegin}
             </button>
           </>
         )}
 
         <p className="auth-toggle">
-          By continuing, you agree to Udaan&apos;s{" "}
-          <button onClick={() => {}}>Terms & Privacy</button>
+          {t.termsPrivacy}
         </p>
       </div>
     </div>
