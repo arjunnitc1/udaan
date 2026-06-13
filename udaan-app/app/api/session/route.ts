@@ -1,42 +1,93 @@
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { sessions, events } from "@/lib/db/schema";
+import { SessionEventSchema } from "@/lib/validations";
+import { count, eq } from "drizzle-orm";
 
 /**
- * Session/event logging endpoint.
+ * POST /api/session
  *
- * Today: logs to the server console and keeps an in-memory tally so the app
- * runs with ZERO database setup. Lost on redeploy — fine for a pilot demo.
+ * Logs a funnel event to the database.
+ * On "session_start" it upserts the session row first (idempotent so demo
+ * replays and network retries don't duplicate rows).
  *
- * When you add Supabase/Neon (DATABASE_URL in env):
- *   1. npm install @supabase/supabase-js  (or pg / drizzle for Neon)
- *   2. Create tables:
- *        sessions(id uuid pk, started_at timestamptz, lang text)
- *        events(id bigint pk, session_id uuid, type text, payload jsonb, at timestamptz)
- *   3. Replace the in-memory block below with inserts.
- *
- * The event types the frontend sends map directly to your PM funnel:
- *   session_start → interview_answer → kit_generated → whatsapp_copied
- * Funnel drop-off between these IS your product dashboard.
+ * Event funnel:  session_start → interview_answer → kit_generated → whatsapp_copied
  */
-
-type EventBody = { sessionId: string; type: string; payload?: unknown };
-
-const tally = new Map<string, number>();
-
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as EventBody;
-    if (!body.sessionId || !body.type) {
-      return NextResponse.json({ error: "sessionId and type required" }, { status: 400 });
+    const body = await req.json();
+    const parsed = SessionEventSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request.", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
-    tally.set(body.type, (tally.get(body.type) || 0) + 1);
-    console.log(`[event] ${body.type} session=${body.sessionId}`, body.payload ?? "");
+
+    const { sessionId, type, payload } = parsed.data;
+
+    // Upsert the session row on the first event so all events have a parent.
+    if (type === "session_start") {
+      const langValue =
+        payload &&
+        typeof payload === "object" &&
+        "lang" in payload &&
+        typeof (payload as Record<string, unknown>).lang === "string"
+          ? ((payload as Record<string, unknown>).lang as string)
+          : "en";
+
+      const isDemoValue =
+        payload &&
+        typeof payload === "object" &&
+        "demo" in payload &&
+        typeof (payload as Record<string, unknown>).demo === "boolean"
+          ? ((payload as Record<string, unknown>).demo as boolean)
+          : false;
+
+      await db
+        .insert(sessions)
+        .values({ id: sessionId, lang: langValue, is_demo: isDemoValue })
+        .onConflictDoNothing();
+    }
+
+    // Insert the event row (only if a parent session exists to avoid orphans).
+    await db.insert(events).values({
+      session_id: sessionId,
+      type,
+      payload: payload ?? null,
+    });
+
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[session route error]", err);
     return NextResponse.json({ error: "bad request" }, { status: 400 });
   }
 }
 
+/**
+ * GET /api/session
+ *
+ * Returns aggregated funnel counts — handy during a pilot to watch
+ * drop-off between stages in real-time.
+ *
+ * Example response:
+ * { "session_start": 42, "interview_answer": 38, "kit_generated": 31, "whatsapp_copied": 17 }
+ */
 export async function GET() {
-  // Quick peek at the funnel while piloting: GET /api/session
-  return NextResponse.json(Object.fromEntries(tally));
+  try {
+    const rows = await db
+      .select({ type: events.type, total: count() })
+      .from(events)
+      .groupBy(events.type);
+
+    const tally = Object.fromEntries(rows.map((r) => [r.type, r.total]));
+    return NextResponse.json(tally);
+  } catch (err) {
+    console.error("[session GET error]", err);
+    return NextResponse.json(
+      { error: "Could not fetch analytics." },
+      { status: 500 }
+    );
+  }
 }

@@ -139,7 +139,10 @@ export default function Home() {
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": sessionId.current,
+        },
         body: JSON.stringify({ messages: apiMessages.current }),
       });
       if (!res.ok) throw new Error("HTTP " + res.status);

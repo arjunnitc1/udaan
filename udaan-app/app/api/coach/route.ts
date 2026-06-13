@@ -1,55 +1,80 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { buildSystemPrompt } from "@/lib/prompt";
+import { CoachRequestSchema } from "@/lib/validations";
+import { db } from "@/lib/db";
+import { kits } from "@/lib/db/schema";
+import type { Kit } from "@/lib/types";
 
-// The API key lives ONLY here, on the server. Never in the browser.
+// ─── AI Client ───────────────────────────────────────────────────────────────
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
 
-// --- Minimal in-memory rate limiter (per serverless instance) ---
-// Good enough to stop a runaway loop from draining your API budget.
-// For real production scale, replace with Upstash Redis rate limiting.
-const hits = new Map<string, { count: number; reset: number }>();
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 10;
+// ─── Rate Limiter (Upstash Redis) ────────────────────────────────────────────
+// Falls back to a no-op limiter if Upstash env vars are not configured,
+// so the app still works locally without Redis.
 
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = hits.get(ip);
-  if (!entry || now > entry.reset) {
-    hits.set(ip, { count: 1, reset: now + WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > MAX_PER_WINDOW;
+let ratelimit: Ratelimit | null = null;
+
+if (
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
+  ratelimit = new Ratelimit({
+    redis: new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    }),
+    // 10 requests per 60 seconds per IP — protects API budget.
+    limiter: Ratelimit.slidingWindow(10, "60 s"),
+    analytics: true,
+    prefix: "udaan:ratelimit",
+  });
 }
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+// ─── Route Handler ───────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
-    if (rateLimited(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests. Please wait a minute." },
-        { status: 429 }
-      );
-    }
+    // 1. Rate limit
+    if (ratelimit) {
+      const ip =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+      const { success, limit, remaining, reset } =
+        await ratelimit.limit(ip);
 
-    const body = await req.json();
-    const messages: ChatMessage[] = body.messages;
-
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 20) {
-      return NextResponse.json({ error: "Invalid conversation." }, { status: 400 });
-    }
-    // Basic input hygiene: cap message sizes.
-    for (const m of messages) {
-      if (typeof m.content !== "string" || m.content.length > 2000) {
-        return NextResponse.json({ error: "Message too long." }, { status: 400 });
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please wait a minute." },
+          {
+            status: 429,
+            headers: {
+              "X-RateLimit-Limit": String(limit),
+              "X-RateLimit-Remaining": String(remaining),
+              "X-RateLimit-Reset": String(reset),
+            },
+          }
+        );
       }
     }
 
+    // 2. Validate request body with Zod
+    const body = await req.json();
+    const parsed = CoachRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request.", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { messages } = parsed.data;
+
+    // 3. Call Anthropic
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1500,
@@ -62,19 +87,37 @@ export async function POST(req: NextRequest) {
       .map((b) => (b as { type: "text"; text: string }).text)
       .join("\n");
 
-    // The model is instructed to return pure JSON; strip stray fences defensively.
+    // 4. Parse JSON from model response (strip stray code fences defensively)
     const clean = text.replace(/```json|```/g, "").trim();
-    let parsed: unknown;
+    let parsed_reply: unknown;
     try {
-      parsed = JSON.parse(clean);
+      parsed_reply = JSON.parse(clean);
     } catch {
-      // One retry-style fallback: extract the outermost JSON object if extra prose leaked.
       const match = clean.match(/\{[\s\S]*\}/);
       if (!match) throw new Error("Model did not return JSON");
-      parsed = JSON.parse(match[0]);
+      parsed_reply = JSON.parse(match[0]);
     }
 
-    return NextResponse.json({ reply: parsed, raw: text });
+    // 5. Persist kit to DB if the model returned a completed kit
+    //    Session ID is passed as a custom header so we can link kits to sessions.
+    const sessionId = req.headers.get("x-session-id");
+    if (
+      parsed_reply &&
+      typeof parsed_reply === "object" &&
+      (parsed_reply as { type?: string }).type === "kit"
+    ) {
+      try {
+        await db.insert(kits).values({
+          session_id: sessionId ?? null,
+          kit_json: parsed_reply as Kit,
+        });
+      } catch (dbErr) {
+        // Non-fatal: log but don't block the response to the user.
+        console.error("[kit persist error]", dbErr);
+      }
+    }
+
+    return NextResponse.json({ reply: parsed_reply, raw: text });
   } catch (err) {
     console.error("coach route error:", err);
     return NextResponse.json(
